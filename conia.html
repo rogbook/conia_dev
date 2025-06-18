@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONIALAB - 세상을 연결하는 커뮤니티 커머스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .section-title {
+            @apply text-4xl md:text-5xl font-extrabold text-center mb-4 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 bg-clip-text text-transparent drop-shadow-lg;
+        }
+        .section-subtitle {
+            @apply text-center text-gray-500 mb-12 max-w-2xl mx-auto text-lg;
+        }
+        .card-glass {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.18);
+        }
+        .gradient-btn {
+            background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+            color: #fff;
+            box-shadow: 0 4px 14px 0 rgba(124,58,237,0.15);
+        }
+        .gradient-btn:hover {
+            background: linear-gradient(90deg, #7c3aed 0%, #2563eb 100%);
+            color: #fff;
+            box-shadow: 0 6px 24px 0 rgba(37,99,235,0.18);
+            transform: scale(1.05);
+        }
+        .counter-number {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up {
+            opacity: 0;
+            animation: fadeInUp 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-700">
+    <!-- Header -->
+    <header id="header" class="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg shadow-lg transition-all duration-300">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-3xl font-black bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 bg-clip-text text-transparent tracking-tight">CONIALAB</a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="#about" class="text-gray-600 hover:text-blue-700 font-semibold transition-colors">ABOUT US</a>
+                <a href="#services" class="text-gray-600 hover:text-blue-700 font-semibold transition-colors">SERVICES</a>
+                <a href="#solutions" class="text-gray-600 hover:text-blue-700 font-semibold transition-colors">SOLUTIONS</a>
+                <a href="#performance" class="text-gray-600 hover:text-blue-700 font-semibold transition-colors">PERFORMANCE</a>
+                <a href="#technology" class="text-gray-600 hover:text-blue-700 font-semibold transition-colors">TECHNOLOGY</a>
+                <a href="#contact" class="text-gray-600 hover:text-blue-700 font-semibold transition-colors">CONTACT</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-full hover:bg-blue-100 transition">
+                <i class="fas fa-bars text-2xl text-blue-700"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white/95 shadow-lg rounded-b-2xl">
+            <a href="#about" class="block py-3 px-8 text-base hover:bg-blue-50 font-semibold">ABOUT US</a>
+            <a href="#services" class="block py-3 px-8 text-base hover:bg-blue-50 font-semibold">SERVICES</a>
+            <a href="#solutions" class="block py-3 px-8 text-base hover:bg-blue-50 font-semibold">SOLUTIONS</a>
+            <a href="#performance" class="block py-3 px-8 text-base hover:bg-blue-50 font-semibold">PERFORMANCE</a>
+            <a href="#technology" class="block py-3 px-8 text-base hover:bg-blue-50 font-semibold">TECHNOLOGY</a>
+            <a href="#contact" class="block py-3 px-8 text-base hover:bg-blue-50 font-semibold">CONTACT</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen flex items-center justify-center text-white overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-indigo-900/60 to-purple-900/80 z-0"></div>
+        <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1920&q=80" alt="hero bg" class="absolute inset-0 w-full h-full object-cover opacity-40 z-0">
+        <div class="relative z-10 text-center p-8">
+            <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6 drop-shadow-xl bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent animate-fade-in-up">
+                연결을 통해 가치를, <br class="hidden md:block">데이터로 성장을.
+            </h1>
+            <p class="text-2xl md:text-3xl font-light mb-10 drop-shadow-lg animate-fade-in-up" style="animation-delay:0.2s;">
+                세상을 연결하는 커뮤니티 커머스, <span class="font-bold">코니아랩</span>
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in-up" style="animation-delay:0.4s;">
+                <a href="#solutions" class="gradient-btn py-4 px-10 rounded-full font-bold text-lg flex items-center gap-2 shadow-lg transition-all duration-300">
+                    <i class="fas fa-rocket"></i> 코니아랩 솔루션 보기
+                </a>
+                <a href="#contact" class="bg-white/90 border-2 border-blue-600 hover:bg-blue-50 text-blue-700 font-bold py-4 px-10 rounded-full flex items-center gap-2 shadow-lg transition-all duration-300">
+                    <i class="fas fa-handshake"></i> 파트너십 문의하기
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="pt-24">
+        <!-- About Us Section -->
+        <section id="about" class="py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">ABOUT US</h2>
+                <p class="section-subtitle">
+                    "커뮤니티 커머스" 구축을 돕는 당신의 가장 든든한 파트너, 코니아랩입니다.
+                </p>
+                <div class="grid md:grid-cols-2 gap-16 items-center">
+                    <div class="fade-in-up">
+                        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="코니아랩 회사 소개 이미지" class="rounded-2xl shadow-2xl border-4 border-white">
+                    </div>
+                    <div class="fade-in-up" style="animation-delay:0.2s;">
+                        <p class="mb-6 text-lg">
+                            코니아랩은 단순한 유통 중개 기업이 아닙니다. 우리는 AI와 빅데이터 기술을 기반으로 공급자와 수요자를 가장 효율적으로 연결하고, 마케팅부터 글로벌 물류, 통관까지 원스톱으로 지원하는 B2B SCM 솔루션 전문 기업입니다.
+                        </p>
+                        <p class="mb-8 text-lg">
+                            공통의 가치와 목표를 공유하는 커뮤니티를 기반으로 한 독창적인 유통 네트워크를 통해, 우리는 참여자 모두가 상호 이익을 얻고 함께 성장하는 지속 가능한 생태계를 만들어 갑니다.
+                        </p>
+                        <h3 class="text-2xl font-bold text-blue-700 mb-6">Our Keywords</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-start gap-4">
+                                <span class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full p-3 shadow-lg"><i class="fas fa-link text-xl"></i></span>
+                                <div>
+                                    <h4 class="font-bold text-lg">연결 (Connection)</h4>
+                                    <p>브랜드와 바이어, 사용자를 잇는 가장 강력한 네트워크를 구축합니다.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <span class="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full p-3 shadow-lg"><i class="fas fa-database text-xl"></i></span>
+                                <div>
+                                    <h4 class="font-bold text-lg">데이터 (Data)</h4>
+                                    <p>축적된 빅데이터를 분석하고 활용하여 최적의 공급망 운영 전략을 제시합니다.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <span class="bg-gradient-to-r from-indigo-500 to-blue-400 text-white rounded-full p-3 shadow-lg"><i class="fas fa-chart-line text-xl"></i></span>
+                                <div>
+                                    <h4 class="font-bold text-lg">효율성 (Efficiency)</h4>
+                                    <p>AI 기반 매칭으로 수익률, 재고 회전율을 최적화하여 파트너의 비즈니스 효율을 극대화합니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">OUR SERVICES</h2>
+                <p class="section-subtitle">각 분야 최고 전문가 그룹이 시너지를 창출하여 고객에게 완벽한 통합 서비스를 제공합니다.</p>
+                <div class="grid md:grid-cols-3 gap-10">
+                    <!-- Service 1 -->
+                    <div class="card-glass p-10 text-center transform hover:-translate-y-2 transition duration-300 fade-in-up">
+                        <div class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white w-16 h-16 flex items-center justify-center rounded-full mx-auto mb-6 shadow-lg text-3xl"><i class="fas fa-cogs"></i></div>
+                        <h3 class="text-xl font-bold mb-2">맞춤형 B2B SCM 솔루션</h3>
+                        <p class="text-gray-600">AI 기반 최적 매칭, 자동화 시스템, 글로벌 상거래 지원으로 파트너의 비즈니스 성장을 촉진합니다.</p>
+                    </div>
+                    <!-- Service 2 -->
+                    <div class="card-glass p-10 text-center transform hover:-translate-y-2 transition duration-300 fade-in-up" style="animation-delay: 0.2s;">
+                        <div class="bg-gradient-to-r from-purple-500 to-blue-500 text-white w-16 h-16 flex items-center justify-center rounded-full mx-auto mb-6 shadow-lg text-3xl"><i class="fas fa-network-wired"></i></div>
+                        <h3 class="text-xl font-bold mb-2">커뮤니티 커머스 네트워크</h3>
+                        <p class="text-gray-600">특정 커뮤니티의 니즈에 맞는 상품과 서비스를 제공하여 높은 신뢰 기반의 유통 생태계를 구축합니다.</p>
+                    </div>
+                    <!-- Service 3 -->
+                    <div class="card-glass p-10 text-center transform hover:-translate-y-2 transition duration-300 fade-in-up" style="animation-delay: 0.4s;">
+                        <div class="bg-gradient-to-r from-indigo-500 to-blue-400 text-white w-16 h-16 flex items-center justify-center rounded-full mx-auto mb-6 shadow-lg text-3xl"><i class="fas fa-globe"></i></div>
+                        <h3 class="text-xl font-bold mb-2">전문 자회사를 통한 통합 서비스</h3>
+                        <p class="text-gray-600">솔루션 개발부터 브랜드 마케팅, 글로벌 물류까지 각 분야 전문가 그룹이 완벽한 시너지를 제공합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Solutions Section -->
+        <section id="solutions" class="py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">OUR SOLUTIONS</h2>
+                <p class="section-subtitle">코니아랩의 기술력과 비전이 담긴 실제 플랫폼들을 만나보세요.</p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+                    <!-- Solution Card -->
+                    <div class="card-glass overflow-hidden group transform hover:scale-105 transition duration-500 fade-in-up">
+                        <img src="https://placehold.co/400x300/1e3a8a/ffffff?text=WEINC" alt="윙크 플랫폼" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">윙크 플랫폼 (WEINC)</h3>
+                            <p class="text-sm mb-4">직장인 워크 앤 라이프 가치 허브. B2E 복지몰을 넘어 전자 식권, 맞춤형 큐레이션, 자기계발 혜택까지 제공합니다.</p>
+                            <a href="#" class="text-blue-600 font-bold hover:underline">자세히 보기 &rarr;</a>
+                        </div>
+                    </div>
+                    <!-- Solution Card -->
+                    <div class="card-glass overflow-hidden group transform hover:scale-105 transition duration-500 fade-in-up" style="animation-delay: 0.2s;">
+                        <img src="https://placehold.co/400x300/312e81/ffffff?text=VERSAYOU" alt="베르사유" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">베르사유 (VERSAYOU)</h3>
+                            <p class="text-sm mb-4">소매점 대상 B2B 총판 채널. 차등 가격 정책, 인플루언서 연계, 스마트 자판기 네트워크를 운영합니다.</p>
+                            <a href="#" class="text-blue-600 font-bold hover:underline">자세히 보기 &rarr;</a>
+                        </div>
+                    </div>
+                    <!-- Solution Card -->
+                    <div class="card-glass overflow-hidden group transform hover:scale-105 transition duration-500 fade-in-up" style="animation-delay: 0.4s;">
+                        <img src="https://placehold.co/400x300/042f2e/ffffff?text=CONIA+GLOBAL" alt="코니아글로벌" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">코니아글로벌 (CONIA GLOBAL)</h3>
+                            <p class="text-sm mb-4">B2B 크로스보더 유통 플랫폼. AI 기반 매칭과 원스톱 프로세스로 성공적인 글로벌 비즈니스를 지원합니다.</p>
+                            <a href="#" class="text-blue-600 font-bold hover:underline">자세히 보기 &rarr;</a>
+                        </div>
+                    </div>
+                    <!-- Solution Card -->
+                    <div class="card-glass overflow-hidden group transform hover:scale-105 transition duration-500 fade-in-up" style="animation-delay: 0.6s;">
+                        <img src="https://placehold.co/400x300/4a044e/ffffff?text=DANADREAM" alt="다나드림" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">다나드림 (DANADREAM)</h3>
+                            <p class="text-sm mb-4">병의원 사업자 전용 의료용품 구매 솔루션. 전문 시장의 유통 구조를 혁신하는 상호거래 플랫폼입니다.</p>
+                            <a href="#" class="text-blue-600 font-bold hover:underline">자세히 보기 &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Section -->
+        <section id="performance" class="py-24 bg-gradient-to-br from-blue-100 via-white to-purple-100">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">SUCCESS & PERFORMANCE</h2>
+                <p class="section-subtitle">숫자로 증명된 코니아랩의 가치. 데이터 기반의 혁신은 실제 비즈니스 성과로 나타납니다.</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
+                    <div class="fade-in-up">
+                        <span class="counter-number" data-target="40">0</span><span class="text-3xl font-bold text-blue-800">%+</span>
+                        <p class="text-gray-600 mt-2">거래 성사율 증가</p>
+                    </div>
+                    <div class="fade-in-up" style="animation-delay: 0.2s;">
+                        <span class="counter-number" data-target="30">0</span><span class="text-3xl font-bold text-blue-800">%</span>
+                        <p class="text-gray-600 mt-2">재고 보관 비용 절감</p>
+                    </div>
+                    <div class="fade-in-up" style="animation-delay: 0.4s;">
+                        <span class="counter-number" data-target="25">0</span><span class="text-3xl font-bold text-blue-800">%</span>
+                        <p class="text-gray-600 mt-2">재고 회전율 개선</p>
+                    </div>
+                    <div class="fade-in-up" style="animation-delay: 0.6s;">
+                        <span class="counter-number" data-target="150">0</span><span class="text-3xl font-bold text-blue-800">만+</span>
+                        <p class="text-gray-600 mt-2">글로벌 실구매자 확보</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technology Section -->
+        <section id="technology" class="py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">OUR TECHNOLOGY</h2>
+                <p class="section-subtitle">코니아랩은 미래 기술을 통해 유통의 패러다임을 선도합니다.</p>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                    <div class="text-center p-8 card-glass fade-in-up">
+                        <i class="fas fa-robot text-5xl text-blue-700 mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">AI 기반 매칭</h3>
+                        <p class="text-sm">수요와 공급을 분석하여 최적의 거래 파트너를 연결하고, 빅데이터 기반으로 지속 발전합니다.</p>
+                    </div>
+                    <div class="text-center p-8 card-glass fade-in-up" style="animation-delay: 0.2s;">
+                        <i class="fas fa-brain text-5xl text-purple-700 mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">데이터 기반 의사결정</h3>
+                        <p class="text-sm">방대한 거래 데이터를 분석하여 시장 트렌드를 예측하고, 최적의 비즈니스 결정을 지원합니다.</p>
+                    </div>
+                    <div class="text-center p-8 card-glass fade-in-up" style="animation-delay: 0.4s;">
+                        <i class="fas fa-satellite-dish text-5xl text-indigo-700 mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">IoT 물류</h3>
+                        <p class="text-sm">실시간 물류 추적 시스템으로 상품의 이동 경로와 상태를 정확하게 파악해 효율을 높입니다.</p>
+                    </div>
+                    <div class="text-center p-8 card-glass fade-in-up" style="animation-delay: 0.6s;">
+                        <i class="fas fa-cubes text-5xl text-blue-500 mb-4"></i>
+                        <h3 class="text-lg font-bold mb-2">블록체인</h3>
+                        <p class="text-sm">거래의 투명성과 안전성을 보장하고, 모든 과정이 기록/검증되는 신뢰 환경을 조성합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">CONTACT US</h2>
+                <p class="section-subtitle">코니아랩과 함께 비즈니스의 새로운 가능성을 열어보세요. 최고의 파트너가 기다리고 있습니다.</p>
+                <div class="max-w-3xl mx-auto card-glass p-10 md:p-16">
+                    <form>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <div>
+                                <label for="partnership-type" class="block text-gray-700 font-medium mb-2">파트너십 유형</label>
+                                <select id="partnership-type" name="partnership-type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option>상품 공급/입점</option>
+                                    <option>커뮤니티 커머스 구축</option>
+                                    <option>마케팅/물류 협력</option>
+                                    <option>기타</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="company-name" class="block text-gray-700 font-medium mb-2">회사명</label>
+                                <input type="text" id="company-name" name="company-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label for="contact-name" class="block text-gray-700 font-medium mb-2">담당자명</label>
+                                <input type="text" id="contact-name" name="contact-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label for="email" class="block text-gray-700 font-medium mb-2">이메일</label>
+                                <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        <div class="mb-8">
+                            <label for="message" class="block text-gray-700 font-medium mb-2">문의 내용</label>
+                            <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="gradient-btn py-4 px-16 rounded-full font-bold text-lg shadow-lg transition-all duration-300">
+                                상담 신청하기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 text-white py-10 mt-12">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex justify-center gap-6 mb-4">
+                <a href="#" class="hover:text-blue-400 transition"><i class="fab fa-facebook-f text-xl"></i></a>
+                <a href="#" class="hover:text-blue-400 transition"><i class="fab fa-instagram text-xl"></i></a>
+                <a href="#" class="hover:text-blue-400 transition"><i class="fab fa-linkedin-in text-xl"></i></a>
+                <a href="#" class="hover:text-blue-400 transition"><i class="fab fa-youtube text-xl"></i></a>
+            </div>
+            <p class="font-bold">&copy; 2024 CONIALAB. All rights reserved.</p>
+            <p class="text-sm text-gray-300 mt-2">세상을 연결하는 커뮤니티 커머스, 코니아랩</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // Animated Counters
+        const counters = document.querySelectorAll('.counter-number');
+        const speed = 200;
+        const animateCounter = (counter) => {
+            const target = +counter.getAttribute('data-target');
+            let count = 0;
+            const updateCount = () => {
+                const increment = target / speed;
+                count += increment;
+                if (count < target) {
+                    counter.innerText = Math.ceil(count);
+                    setTimeout(updateCount, 1);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCount();
+        };
+
+        // Intersection Observer for animations
+        const observerOptions = { root: null, threshold: 0.1 };
+        const observerCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Counter animation
+                    if (entry.target.classList.contains('counter-number')) {
+                        animateCounter(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                    // Fade-in-up animation
+                    if(entry.target.classList.contains('fade-in-up')) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                }
+            });
+        };
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+        counters.forEach(counter => { observer.observe(counter); });
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            el.style.opacity = 0;
+            observer.observe(el);
+        });
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
