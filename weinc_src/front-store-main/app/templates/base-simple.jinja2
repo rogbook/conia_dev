@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	{% block head %}
+		<meta charset="utf-8">
+		<title>{% block title %}{% endblock %}</title>
+		<!-- SEO Meta Tags-->
+		<meta name="description" content="{% block seo_description %}{% endblock %}">
+		<meta name="keywords" content="{% block seo_keywords %}{% endblock %}">
+		<meta name="author" content="{% block seo_author %}{% endblock %}">
+		<!-- Viewport-->
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- Favicon and Touch Icons-->
+		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', path='apple-touch-icon.png') }}">
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', path='favicon-32x32.png') }}">
+		<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', path='favicon-16x16.png') }}">
+		{#        <link rel="manifest" href="{{ url_for('static', path='site.webmanifest') }}">#}
+		<link rel="mask-icon" color="#fe6a6a" href="{{ url_for('static', path='safari-pinned-tab.svg') }}">
+		<meta name="msapplication-TileColor" content="#ffffff">
+		<meta name="theme-color" content="#ffffff">
+		<!-- Vendor Styles including: Font Icons, Plugins, etc.-->
+		<link rel="stylesheet" media="screen"
+					href="{{ url_for('static', path='vendor/simplebar/dist/simplebar.min.css') }}"/>
+		<link rel="stylesheet" media="screen"
+					href="{{ url_for('static', path='vendor/tiny-slider/dist/tiny-slider.css') }}"/>
+		<!-- Main Theme Styles + Bootstrap-->
+		<link rel="stylesheet" media="screen" href="{{ url_for('static', path='css/theme.min.css') }}">
+
+	{% endblock %}
+</head>
+<body class="handheld-toolbar-enabled">
+{% block body %}
+
+	<main class="page-wrapper">
+		{% block content %}
+		{% endblock %}
+	</main>
+	{% block script %}
+		<!-- Vendor scrits: js libraries and plugins-->
+		<script src="{{ url_for('static', path='vendor/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+		<script src="{{ url_for('static', path='vendor/simplebar/dist/simplebar.min.js') }}"></script>
+		<script src="{{ url_for('static', path='vendor/tiny-slider/dist/min/tiny-slider.js') }}"></script>
+		<script src="{{ url_for('static', path='vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js') }}"></script>
+		<!-- Main theme script-->
+		<script src="{{ url_for('static', path='js/theme.min.js') }}"></script>
+		<script src="{{ url_for('static', path='js/aconic-common.js?v=3') }}"></script>
+	{% endblock %}
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,304 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}마이 티켓{% endblock %}
+{% block menu_title_breadcrumb %}마이 티켓{% endblock %}
+{% block active_ticket %}active{% endblock %}
+{% block account_content %}
+	{% if legacy_data %}
+		<div class="mb-3 pb-2 border-bottom text-end">
+			<button onclick="go_legacy()" class="btn btn-sm btn-outline-primary">이전 버전 마이 티켓</button>
+		</div>
+	{% endif %}
+	<ul class="nav nav-tabs nav-fill" role="tablist">
+		<li class="nav-item col-6 text-center"><a href="ticket" class="nav-link">마이 티켓</a></li>
+		<li class="nav-item col-6 text-center"><a href="ticket-used" class="nav-link active">티켓 히스토리</a></li>
+	</ul>
+	{% if order_products %}
+		<!-- 사용한 티켓 -->
+		<div class="row mx-n1">
+			{% for prd in order_products %}
+				<div class="card mb-3 p-0">
+					<div class="card-body">
+						<div class="d-flex w-100">
+							<div class="me-3" style="min-width: 80px; width: 20%;">
+								<a href="/{{ request.path_params.store_code }}/product/{{ prd.product.id }}"><img src="{{ prd.product_thumbnail }}" class="img-1by1 rounded-2 img-gray"></a>
+							</div>
+							<div style="width: 80%;">
+								{% if prd.status == 'CP' %}
+									<div class="mb-1 fs-xs text-muted">사용완료</div>
+								{% elif prd.status == 'CD' %}
+									<div class="mb-1 fs-xs text-danger">결제취소</div>
+								{% elif prd.status == 'EXP' %}
+									<div class="mb-1 fs-xs text-danger">기한만료</div>
+								{% endif %}
+								<div class="fs-sm">{{ prd.member.company.name }}</div>
+								<div class="product-title mb-1 fw-bold"><a href="/{{ request.path_params.store_code }}/product/{{ prd.product.id }}">{{ prd.product_name }}</a></div>
+								<div class="fs-sm word-keep-all">
+									{% if prd.product_option.option_title %}
+										<span class="text-muted">{{ prd.product_option.option_title }} : </span>{{ prd.product_option.option_1 }}{% if prd.product_option.option_2 %}/{{ prd.product_option.option_2 }}{% endif %}{% if prd.product_option.option_3 %}/{{ prd.product_option.option_3 }}{% endif %}
+										{% if prd.product_option.option_4 %}/{{ prd.product_option.option_4 }}{% endif %}{% if prd.product_option.option_5 %}/{{ prd.product_option.option_5 }}{% endif %}
+									{% endif %}
+								</div>
+								<div class="fs-lg fw-bold text-accent">{{ "{:,.0f}".format(prd.amount) }}원</div>
+							</div>
+						</div>
+						<div class="mt-3">
+							<a href="/{{ request.path_params.store_code }}/order/history/{{ prd.order_id }}" class="btn btn-sm btn-outline-info w-100">자세히 보기</a>
+							{% if prd.status == 'CP' %}
+								{% if not prd.review_id %}
+								<a href="javascript:void(0);" onclick="reviewModal('{{ prd.product_name }}', '{{ prd.product_thumbnail }}', {{ prd.id }})" class="mt-2 btn btn-sm btn-outline-primary w-100">리뷰 작성</a>
+								{% endif %}
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	{% else %}
+		<div class="text-center">
+			<h6 class="my-5">사용 완료한 티켓이 없습니다.</h6>
+			<a href="/{{ request.path_params.store_code }}/product" class="btn btn-outline-primary d-none">상품 보러가기</a>
+		</div>
+	{% endif %}
+
+	{% if paginate and paginate.pages > 1 %}
+		<!-- Pagination-->
+		<nav class="d-flex justify-content-center pt-2" aria-label="Page navigation">
+			<ul class="pagination me-2">
+				{% if paginate.has_previous %}
+					<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page(1)"><i class="fa-solid fa-angles-left"></i></a></li>
+					<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.previous_page }})"><i class="fa-solid fa-angle-left"></i></a></li>
+				{% endif %}
+			</ul>
+			<ul class="pagination">
+				<li class="page-item d-sm-none">
+					<span class="page-link page-link-static">{{ paginate.current_page }} / {{ paginate.pages }}</span>
+				</li>
+				{% for i in range(1, paginate.pages + 1) %}
+					{% if i > paginate.current_page - 4 and i <= paginate.current_page + 4 %}
+						{% if i == paginate.current_page %}
+							<li class="page-item active d-none d-sm-block" aria-current="page">
+								<span class="page-link">{{ paginate.current_page }}<span class="visually-hidden">(current)</span></span>
+							</li>
+						{% else %}
+							<li class="page-item d-none d-sm-block"><a class="page-link" href="javascript:void(0);" onclick="page({{ i }})">{{ i }}</a></li>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			</ul>
+			<ul class="pagination ms-1">
+				{% if paginate.has_next %}
+					<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.next_page }})" aria-label="Next"><i class="fa-solid fa-angle-right"></i></a></li>
+					<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.pages }})" aria-label="Next"><i class="fa-solid fa-angles-right"></i></a></li>
+				{% endif %}
+			</ul>
+		</nav>
+	{% endif %}
+
+	<!-- Modal markup -->
+	<div class="modal fade" tabindex="-1" role="dialog" id="modalReview">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div class="modal-title">상품 리뷰</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row align-items-center">
+						<div class="col-3"><img id="reviewPrdImg" class="w-100 img-1by1 rounded-2" alt="Product"></div>
+						<div class="col-9 ps-0">
+							<div class="widget-product-title" id="reviewPrdTitle">상품제목</div>
+						</div>
+					</div>
+					<div class="mt-4">
+						<label for="review-message" class="mb-1 fw-bold">리뷰를 남겨주세요 <span class="text-primary">*</span></label>
+						<textarea required id="review-message" name="contents" maxlength="500" placeholder="최대 500자 까지 작성 할 수 있습니다." class="form-control pb-5" style="height:200px;"></textarea>
+						<input type="hidden" id="review-target">
+					</div>
+					<div class="d-flex gap-2 flex-wrap mt-2" id="review_photos">
+						<!-- Drag and drop file upload -->
+						<div class="file-drop-area d-flex align-items-center justify-content-center rounded-2">
+							<div class="file-drop-icon ci-cloud-upload mt-2"></div>
+							<input type="file" name="files" id="files_1" class="file-drop-input">
+						</div>
+						<!-- <div class="file-drop-area d-flex align-items-center justify-content-center rounded-2">
+							<div class="file-drop-icon ci-cloud-upload mt-2"></div>
+							<input type="file" name="files" id="files_2" class="file-drop-input">
+						</div>
+						<div class="file-drop-area d-flex align-items-center justify-content-center rounded-2">
+							<div class="file-drop-icon ci-cloud-upload mt-2"></div>
+							<input type="file" name="files" id="files_3" class="file-drop-input">
+						</div> -->
+					</div>
+					<div class="pt-2 d-flex justify-content-end">
+						<button id="btnWrite" class="btn btn-sm btn-primary" type="button" onclick="review()">리뷰 작성</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    function page(page) {
+      addQueryParam('page', page);
+    }
+
+    function return_exchange(order_id) {
+      window.location.href = "/{{ request.path_params.store_code }}/order/re_step1/" + order_id
+    }
+
+    function api_order_complete(order_product_id) {
+      axios.post("/api/order/complete/" + order_product_id, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '구매확정 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = "/{{ request.path_params.store_code }}/order/history";
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function order_complete(prd_id) {
+      swal.fire({
+        position: 'center',
+        icon: 'info',
+        title: '구매확정 하시면 반품 및 교환이 되지 않습니다. <br>구매확정 하시겠습니까?',
+        showCancelButton: true,
+        confirmButtonColor: '#69b3fe',
+        confirmButtonText: "구매확정",
+        cancelButtonText: "취소",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          api_order_complete(prd_id);
+        }
+      })
+    }
+
+    function reviewModal(prdTitle, prdImg, target) {
+			// reset
+			document.getElementById("review-message").value = "";
+			document.querySelectorAll("input[type='file']").forEach(function(element){
+				element.value = "";
+			});
+			document.querySelectorAll(".img-preview-box").forEach(function(element){
+				element.innerHTML = "";
+				element.className = "file-drop-icon ci-cloud-upload mt-2";
+			});
+
+      document.getElementById("reviewPrdImg").src = prdImg;
+      document.getElementById("reviewPrdTitle").innerHTML = prdTitle;
+      document.getElementById("review-target").value = target;
+			document.getElementById("btnWrite").disabled = false;
+
+      const modal = new bootstrap.Modal(document.querySelector('#modalReview'));
+      modal.show();
+    }
+
+    function review() {
+      if (!document.getElementById("review-message").value) {
+				swal.fire({
+					position: 'center',
+					icon: 'warning',
+					title: '내용을 입력하세요.',
+					showConfirmButton: false,
+					timer: 1500,
+				});
+        return;
+      }
+
+			document.getElementById("btnWrite").disabled = true;
+
+      const formData = new FormData();
+      formData.append("order_product_id", document.getElementById("review-target").value);
+      formData.append("contents", document.getElementById("review-message").value);
+      formData.append("order_info", "");
+      if (document.getElementById("files_1").value) {
+        const max_size = 1024 * 1024 * 10;
+        if (document.getElementById("files_1").files[0].size > max_size) {
+          swal.fire("파일 용량은 10MB 이하여야 합니다.");
+          return;
+        }
+        formData.append("files", document.getElementById("files_1").files[0]);
+      }
+
+      axios.post("/api/product/review", formData, {
+        headers: {'Content-Type': 'multipart/form-data'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '리뷰가 등록 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = "/{{ request.path_params.store_code }}/order/ticket-used";
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    $(document).ready(function () {
+      var fileArea = document.querySelectorAll('.file-drop-area');
+      var _loop2 = function _loop2(i) {
+        var input = fileArea[i].querySelector('.file-drop-input'),
+            icon = fileArea[i].querySelector('.file-drop-icon');
+        input.addEventListener('change', function () {
+          if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              var fileData = e.target.result;
+              var fileName = input.files[0].name;
+              if (fileData.startsWith('data:image')) {
+                var image = new Image();
+                image.src = fileData;
+                image.onload = function () {
+                  icon.className = 'img-preview-box';
+                  icon.innerHTML = '<img src="' + image.src + '" alt="' + fileName + '">';
+                };
+              }
+            };
+            reader.readAsDataURL(input.files[0]);
+          }
+        });
+      };
+      for (var i = 0; i < fileArea.length; i++) {
+        _loop2(i);
+      }
+    });
+
+    function go_legacy() {
+      let data = {
+        loginId: "{{ legacy_data['id'] }}",
+        password: "{{ legacy_data['pw'] }}",
+      }
+      axios.post("https://coniaworld.com/{{ store.code }}/login/v3", data, {
+        headers: {'Content-Type': 'application/json'}, withCredentials: true
+      }).then(function (response) {
+        let newPage = window.open('https://coniaworld.com/{{ store.code }}/my/ticket', '_blank');
+        newPage.addEventListener('load', function () {
+          newPage.document.cookie = document.cookie;
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+	</script>
+{% endblock %}

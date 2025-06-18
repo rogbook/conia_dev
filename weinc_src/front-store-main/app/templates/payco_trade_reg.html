@@ -1,0 +1,105 @@
+<!DOCTYPE>
+<html>
+<head>
+	<title>{{ req_data.site_name }}</title>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=yes, target-densitydpi=medium-dpi">
+	<style>
+      .loader-container {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.5); /* 배경색과 투명도 조정 가능 */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+
+      .loader {
+          border: 4px solid #f3f3f3; /* 회색 동그라미 테두리 */
+          border-top: 4px solid #3498db; /* 파란색 동그라미 테두리 */
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          animation: spin 1s linear infinite; /* 회전 애니메이션 적용 */
+      }
+
+      @keyframes spin {
+          0% {
+              transform: rotate(0deg);
+          }
+          100% {
+              transform: rotate(360deg);
+          }
+      }
+	</style>
+	<div class="loader-container">
+		<div class="loader"></div>
+	</div>
+	<script src="{{ url_for('static', path='js/aconic-common.js?v=3') }}"></script>
+	<script type="text/javascript">
+    function receive(e) {
+      console.log(e.data);
+
+      if (e.data.code === "0") {
+        document.getElementById("reserveOrderNo").value = e.data.reserveOrderNo;
+        document.getElementById("paymentCertifyToken").value = e.data.paymentCertifyToken;
+        document.getElementById("mainPgCode").value = e.data.mainPgCode;
+        document.form_trade_reg.action = "/{{ request.path_params.store_code }}/order/request";
+        document.form_trade_reg.submit();
+      } else {
+        alert("Payco Error Code : " + e.data.code);
+        history.back();
+      }
+    }
+
+    function goReq() {
+      let payWindow = null;
+      setTimeout(() => {
+        window.addEventListener("message", receive, false);
+        document.getElementById("payForm").submit()
+      });
+    }
+		document.addEventListener("visibilitychange", function () {
+			if (document.hidden) {
+
+			}	else {
+
+			}
+    });
+	</script>
+</head>
+<body onload="goReq()">
+<form name="form_trade_reg" method="post">
+	<input type="hidden" name="site_name" value="{{ req_data.site_name }}"/>
+	<input type="hidden" name="ordr_idxx" value="{{ req_data.ordr_idxx }}"/>
+	<input type="hidden" name="good_mny" value="{{ req_data.good_mny }}"/>
+	<input type="hidden" name="good_name" value="{{ req_data.good_name }}"/>
+	<input type="hidden" name="buyr_name" value="{{ req_data.buyr_name }}"/>
+	<input type="hidden" name="buyr_tel2" value="{{ req_data.buyr_tel2 }}"/>
+	<input type="hidden" name="buyr_mail" value="{{ req_data.buyr_mail }}"/>
+	<input type="hidden" name="pay_method" value="{{ req_data.pay_method }}"/>
+	<input type="hidden" name="sheet_id" value="{{ req_data.sheet_id }}"/>
+	<input type="hidden" name="address_id" value="{{ req_data.address_id }}"/>
+	<input type="hidden" name="total_shipping" value="{{ req_data.total_shipping }}"/>
+	<input type="hidden" name="memo" value="{{ req_data.memo }}"/>
+	<input type="hidden" name="client_type" value="{{ req_data.client_type }}"/>
+	<input type="hidden" name="user_name" value="{{ req_data.user_name }}"/>
+	<input type="hidden" name="user_phone" value="{{ req_data.user_phone }}"/>
+	<input type="hidden" name="user_email" value="{{ req_data.user_email }}"/>
+	<input type="hidden" name="active_coupon" value="{{ req_data.active_coupon }}"/>
+	<input type="hidden" name="payType" id="payType" value="payco"/>
+	<input type="hidden" name="reserveOrderNo" id="reserveOrderNo" value=""/>
+	<input type="hidden" name="paymentCertifyToken" id="paymentCertifyToken" value=""/>
+	<input type="hidden" name="mainPgCode" id="mainPgCode" value=""/>
+	<input type="hidden" name="comm_tax_mny" value="{{ req_data.comm_tax_mny }}"/>
+	<input type="hidden" name="comm_vat_mny" value="{{ req_data.comm_vat_mny }}"/>
+	<input type="hidden" name="comm_free_mny" value="{{ req_data.comm_free_mny }}"/>
+</form>
+<form action="{{ payco_res.result.orderSheetUrl }}" name="payForm" id="payForm" target="payForm">
+</form>
+</body>
+</html>

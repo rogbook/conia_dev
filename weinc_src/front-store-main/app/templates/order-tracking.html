@@ -1,0 +1,565 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}주문 내역{% endblock %}
+{% block menu_title_breadcrumb %}주문 내역{% endblock %}
+{% block active_order %}active{% endblock %}
+{% block account_content %}
+	<div class="row align-items-center mb-2 mx-0">
+		<div class="col-md-6 col-12 d-flex flex-column align-items-md-baseline align-items-center">
+			<div class="text-muted fs-sm">{{ (order.reg_date|string)[:10] }}</div>
+			<h5 class="fs-lg fw-bold">주문 번호 - {{ order.id }}{% if order.step_type and order.step_type == 'exchange' %}/ 교환{% endif %}</h5>
+			{% if order.origin_order_id %}
+				<h5 class="fs-lg fw-bold">원주문 번호 - {{ order.origin_order_id }}</h5>
+			{% endif %}
+		</div>
+		<div class="col-md-6 col-12 d-flex justify-content-end gap-1 px-0 mt-md-0 mt-3">
+			{% if order.products[0].type == "UP-OF" and order.status != "CP" and order.status != "CD" %}
+				{% if able_count %}
+					<button class="btn btn-sm btn-primary" data-bs-toggle="modal" onclick="modalTicket('all');">마이 티켓 직원확인 (전체)</button>
+				{% endif %}
+			{% endif %}
+			{% if not product_cancel_able %}
+				<a class="btn btn-sm btn-outline-dark" href="/{{ store.code }}/board/qna/add?cate=cancel&order_id={{ order.id }}">주문취소</a>
+			{% elif cancel_able %}
+				{% if cancel_disable %}
+					<button class="btn btn-sm btn-outline-dark" onclick="cancel_disable_msg()">주문취소</button>
+				{% else %}
+					<button class="btn btn-sm btn-outline-dark" onclick="order_cancel('{{ order.id }}')">주문취소</button>
+				{% endif %}
+			{% endif %}
+		</div>
+	</div>
+
+	<div class="card mb-3">
+		<div class="card-header fw-bold">
+			주문 상품
+		</div>
+		<div class="card-body">
+			{% for prd in order.products %}
+				<!-- Item-->
+				<div class="{% if loop.last == false %}mb-4 pb-4 border-bottom{% endif %}">
+					{% if prd.status == 'PD' %}
+						<span class="badge bg-info me-2 mb-2 fs-sm">결제완료</span>
+					{% elif prd.status == 'PW' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">입금대기</span>
+					{% elif prd.status == 'CD' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">결제취소</span>
+					{% elif prd.status == 'DW' %}
+						<span class="badge bg-info me-2 mb-2 fs-sm">상품준비중</span>
+					{% elif prd.status == 'DD' %}
+						<span class="badge bg-warning me-2 mb-2 fs-sm">출고지연</span>
+					{% elif prd.status == 'DN' %}
+						<span class="badge bg-info me-2 mb-2 fs-sm">배송중</span>
+					{% elif prd.status == 'DC' %}
+						<span class="badge bg-success me-2 mb-2 fs-sm">배송완료</span>
+					{% elif prd.status == 'CP' %}
+						<span class="badge bg-success me-2 mb-2 fs-sm">구매확정</span>
+					{% elif prd.status == 'RFR' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">반품요청</span>
+					{% elif prd.status == 'RFN' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">반품처리중</span>
+					{% elif prd.status == 'RFC' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">반품완료</span>
+					{% elif prd.status == 'EXR' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">교환요청</span>
+					{% elif prd.status == 'EXN' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">교환처리중</span>
+					{% elif prd.status == 'EXC' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">교환완료</span>
+					{% elif prd.status == 'EXP' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">기한만료</span>
+					{% elif prd.status == 'AR' %}
+						<span class="badge bg-secondary me-2 mb-2 fs-sm">환불</span>
+					{% else %}
+						<span class="badge bg-info me-2 mb-2 fs-sm">{{ prd.status }}</span>
+					{% endif %}
+					<div class="d-flex w-100">
+						<div class="me-3" style="min-width:80px; width:20%;">
+							<a class="d-inline-block flex-shrink-0 mx-auto" href="/{{ request.path_params.store_code }}/product/{{ prd.product_option.product.id }}">
+								<img src="{{ prd.product_thumbnail }}" alt="Product" class="img-1by1 rounded-2">
+							</a>							
+						</div>
+						<div style="width:80%;">
+							<div class="fs-sm">{{ prd.member.company.name }}</div>
+							<div class="product-title mb-1 fw-bold">
+								<a href="/{{ request.path_params.store_code }}/product/{{ prd.product_option.product.id }}">{{ prd.product_name }}</a>
+							</div>
+							{% if prd.product_option.option_title %}
+								<div class="fs-sm word-keep-all">
+									<span class="text-muted">{{ prd.product_option.option_title }} : </span>{{ prd.product_option.option_1 }}{% if prd.product_option.option_2 %}/{{ prd.product_option.option_2 }}{% endif %}{% if prd.product_option.option_3 %}/{{ prd.product_option.option_3 }}{% endif %}
+									{% if prd.product_option.option_4 %}/{{ prd.product_option.option_4 }}{% endif %}{% if prd.product_option.option_5 %}/{{ prd.product_option.option_5 }}{% endif %}
+								</div>
+							{% endif %}
+							<div class="fs-sm mb-2"><span class="text-muted">주문 수량 : </span>{{ prd.ea }}</div>
+							<div class="mt-3 mb-1 lineH-10">
+								{% if prd.amount > prd.origin_price %}
+									<del class="text-muted me-1 fs-sm">{{ "{:,.0f}".format(prd.origin_price) }}원</del>
+								{% endif %}
+								<span class="fs-lg fw-bold">{{ "{:,.0f}".format(prd.amount) }}원</span>
+							</div>
+							<div class="d-flex gap-1 flex-wrap mt-3">
+								{% if prd.status == 'DN' or prd.status == 'DC' %}
+									<button class="btn btn-sm btn-outline-success" onclick="order_complete({{ prd.id }})">구매확정</button>
+									<button class="btn btn-sm btn-outline-danger" onclick="shipping_tracking('{{ prd.order_shipping.provider_code }}', '{{ prd.order_shipping.number }}')">배송확인</button>
+								{% elif prd.status == 'CP' %}
+									{% if not prd.review_id %}
+										<button class="btn btn-sm btn-outline-primary" onclick="openReview('{{ prd.product_name }}', '{{ prd.product_thumbnail }}', {{ prd.id }})">리뷰 작성</button>
+									{% endif %}
+								{% endif %}
+								{% if prd.status != 'PD' and prd.status != 'CD' %}
+									<a class="btn btn-sm btn-outline-dark" href="/{{ store.code }}/board/qna/add?order_id={{ order.id }}">문의하기</a>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+					<div class="w-100 mt-3">
+						{% if order.products[0].type == "UP-OF" and prd.status != "CP" and prd.status != "CD" %}
+							{% if prd.use_end_date and prd.use_end_date < now %}
+								<button class="btn btn-sm btn-primary d-block w-100 mt-2">사용기간 만료</button>
+							{% else %}
+								<button class="btn btn-sm btn-primary d-block w-100 mt-2" data-bs-toggle="modal" onclick="modalTicket({{ prd.id }});">마이 티켓 직원확인</button>
+							{% endif %}
+						{% endif %}
+						{% if order.products[0].type == "UP-EC" and prd.status != "CD" %}
+							<!-- 브랜드티켓 -->
+							<a href="/{{ request.path_params.store_code }}/ecoupon/{{ prd.id }}" class="btn btn-sm btn-primary d-block w-100 mt-2">자세히 보기</a>
+						{% endif %}
+					</div>					
+				</div>
+				
+			{% endfor %}
+		</div>
+	</div>
+
+	<div class="card my-3">
+		{% if order.products[0].type == "DP" %}
+			<div class="card-header fw-bold">
+				배송지 정보
+			</div>
+			<div class="card-body">
+				<table>
+					<tr>
+						<td class="text-muted pe-3 py-1">수령인</td>
+						<td>{{ order.recipient_name }}</td>
+					</tr>
+					<tr>
+						<td class="text-muted pe-3 py-1">연락처</td>
+						<td>{{ order.recipient_mobile|phone_format }}</td>
+					</tr>
+					<tr>
+						<td class="text-muted pe-3 d-block py-1">배송지</td>
+						<td>
+							({{ order.zipcode }})<br>
+							{{ order.address }}<br>
+							{{ order.address_detail }}<br>
+						</td>
+					</tr>
+					<tr>
+						<td class="text-muted pe-3 py-1">배송메모</td>
+						<td>{% if order.shipping_msg %}{{ order.shipping_msg }}{% endif %}</td>
+					</tr>
+				</table>
+			</div>
+		{% else %}
+			<div class="card-header fw-bold">
+				구매자 정보
+			</div>
+			<div class="card-body">
+				<table>
+					<tr>
+						<td class="text-muted pe-3 py-1">구매자</td>
+						<td>{{ order.products[0].user_name }}</td>
+					</tr>
+					<tr>
+						<td class="text-muted pe-3 py-1">연락처</td>
+						<td>{{ order.products[0].user_phone|phone_format }}</td>
+					</tr>
+					<tr>
+						<td class="text-muted pe-3 py-1">이메일</td>
+						<td>{{ order.products[0].user_email }}</td>
+					</tr>
+				</table>
+			</div>
+		{% endif %}
+	</div>
+
+	<div class="card my-3">
+		<div class="card-header d-flex flex-wrap justify-content-between">
+			<span class="fw-bold">주문 금액</span>
+			<span class="fw-bold text-accent">{{ "{:,.0f}".format(order.final_amount) }}원</span>
+		</div>
+		<div class="card-body">
+			<div class="mb-2 d-flex flex-wrap justify-content-between">
+				<span class="">상품 금액</span>
+				<span class="fw-bold">{{ "{:,.0f}".format(order.raw_amount) }}원</span>
+			</div>
+			{% if order.products[0].type == "DP" %}
+				<div class="mb-2 d-flex flex-wrap justify-content-between">
+					<span class="">배송비</span>
+					<span class="fw-bold">+{{ "{:,.0f}".format(order.shipping_cost) }}원</span>
+				</div>
+			{% endif %}
+			<div class="d-flex flex-wrap justify-content-between">
+				<span class="">할인</span>
+				<span class="fw-bold">-{{ "{:,.0f}".format(order.discount) }}원</span>
+			</div>
+		</div>
+	</div>
+	{% if pg_info and pg_info.amount > 0 %}
+		<div class="card my-3">
+			<div class="card-header fw-bold">
+				결제 상세
+			</div>
+			<div class="card-body">
+				<div class="mb-2 d-flex flex-wrap justify-content-between">
+					<span class="">{{ pg_info.payment_type }}</span>
+					<span class="fw-bold">{{ "{:,.0f}".format(order.final_amount) }}원</span>
+				</div>
+				<span>{{ pg_info.card_info }}</span>
+			</div>
+		</div>
+	{% endif %}
+
+	<!-- Modal review -->
+	<div class="modal fade" tabindex="-1" role="dialog" id="modalReview">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div class="modal-title">상품 리뷰</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row align-items-center">
+						<div class="col-3"><img id="reviewPrdImg" class="w-100 img-1by1 rounded-2" alt="Product"></div>
+						<div class="col-9 ps-0">
+							<div class="widget-product-title" id="reviewPrdTitle">상품제목</div>
+						</div>
+					</div>
+					<div class="mt-4">
+						<label for="review-message" class="mb-1 fw-bold">리뷰를 남겨주세요 <span class="text-primary">*</span></label>
+						<textarea required id="review-message" name="contents" maxlength="500" placeholder="최대 500자 까지 작성 할 수 있습니다." class="form-control pb-5" style="height:200px;"></textarea>
+						<input type="hidden" id="review-target">
+					</div>
+					<div class="d-flex gap-2 flex-wrap mt-2" id="review_photos">
+						<!-- Drag and drop file upload -->
+						<div class="file-drop-area d-flex align-items-center justify-content-center rounded-2">
+							<div class="file-drop-icon ci-cloud-upload mt-2"></div>
+							<input type="file" name="files" id="files_1" class="file-drop-input">
+						</div>
+						<!-- <div class="file-drop-area d-flex align-items-center justify-content-center rounded-2">
+							<div class="file-drop-icon ci-cloud-upload mt-2"></div>
+							<input type="file" name="files" id="files_2" class="file-drop-input">
+						</div>
+						<div class="file-drop-area d-flex align-items-center justify-content-center rounded-2">
+							<div class="file-drop-icon ci-cloud-upload mt-2"></div>
+							<input type="file" name="files" id="files_3" class="file-drop-input">
+						</div> -->
+					</div>
+					<div class="pt-2 d-flex justify-content-end">
+						<button id="btnWrite" class="btn btn-sm btn-primary" type="button" onclick="review()">리뷰 작성</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- 직원확인 모달 -->
+	<div class="modal fade" tabindex="-1" rolde="dialog" id="modalTicketUse">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div class="modal-title">마이 티켓 직원확인</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<!-- 상품 -->
+					<div class="mb-4 border-bottom">
+						{% for prd in order.products %}
+							{% if prd.status == 'PD' %}
+								<div class="d-flex py-2 border-top modal-product" id="ticketModalPrd{{ prd.id }}">
+									<div class="pe-3" style="min-width:100px; width:20%;"><img src="{{ prd.product_thumbnail }}" class="img-1by1 rounded-1"></div>
+									<div>
+										<div class="fs-sm">{{ prd.member.company.name }}</div>
+										<div class="fw-bold mb-1">{{ prd.product_name }}</div>
+										{% if prd.product_option.option_title %}
+											<div class="fs-sm">
+												<span class="text-muted">{{ prd.product_option.option_title }} : </span>
+												<span>{{ prd.product_option.option_1 }}{% if prd.product_option.option_2 %}/{{ prd.product_option.option_2 }}{% endif %}{% if prd.product_option.option_3 %}/{{ prd.product_option.option_3 }}{% endif %}{% if prd.product_option.option_4 %}/
+													{{ prd.product_option.option_4 }}{% endif %}{% if prd.product_option.option_5 %}/{{ prd.product_option.option_5 }}{% endif %}</span>
+											</div>
+										{% endif %}
+										<div class="fs-sm">
+											<span class="text-muted">주문 수량 : </span>
+											<span>{{ prd.ea }}</span>
+										</div>
+									</div>
+								</div>
+							{% endif %}
+						{% endfor %}
+					</div>
+
+					<div>
+						<input type="text" class="form-control" placeholder="매장직원 확인코드를 입력해주세요." id="confirmCode" onkeyup="inputNumberFormat(this);">
+					</div>
+				</div>
+				<div class="modal-footer py-1">
+					<input type="hidden" id="ticketTarget">
+					<button type="button" class="btn btn-sm btn-primary" onclick="api_order_confirm()">확인완료</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<form action="https://info.sweettracker.co.kr/tracking/3" method="post" name="trackingForm" id="trackingForm" target="trackingForm">
+		<input type="hidden" class="form-control" id="t_key" name="t_key" value="{{ sweet_tracker_api_key }}">
+		<input type="hidden" class="form-control" name="t_code" id="t_code">
+		<input type="hidden" class="form-control" name="t_invoice" id="t_invoice">
+	</form>
+
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    const btnOpenModal = document.querySelector(".open-modal")
+
+    function page(page) {
+      addQueryParam('page', page);
+    }
+
+    function api_order_complete(order_product_id) {
+      axios.post("/api/order/complete/" + order_product_id, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '구매확정 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = "/{{ request.path_params.store_code }}/order/history";
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function api_order_confirm() {
+      let target = $("#ticketTarget").val()
+      let host = ""
+      if (target === "all") {
+        host = "/api/order/confirm/{{ request.path_params.order_id }}"
+      } else {
+        host = "/api/order/confirm_row/" + target
+      }
+
+      let code = document.getElementById("confirmCode").value;
+      axios.post(host, {"code": code},
+          {
+            headers: {'Content-Type': 'application/json'}
+          }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '직원확인이 완료되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = "/{{ request.path_params.store_code }}/order/history";
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+					swal.fire({
+						position: 'center',
+						icon: 'error',
+						title: '매장직원 확인코드가 올바르지 않습니다. 다시 입력해 주세요.',
+						showConfirmButton: false,
+						timer: 1500,
+					});					
+          // alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function order_complete(prd_id) {
+      swal.fire({
+        position: 'center',
+        icon: 'info',
+        title: '구매확정 하시면 반품 및 교환이 되지 않습니다. <br>구매확정 하시겠습니까?',
+        showCancelButton: true,
+        confirmButtonColor: '#69b3fe',
+        confirmButtonText: "구매확정",
+        cancelButtonText: "취소",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          api_order_complete(prd_id);
+        }
+      })
+    }
+
+    function openReview(prdTitle, prdImg, target) {
+			// reset
+			document.getElementById("review-message").value = "";
+			document.querySelectorAll("input[type='file']").forEach(function(element){
+				element.value = "";
+			});
+			document.querySelectorAll(".img-preview-box").forEach(function(element){
+				element.innerHTML = "";
+				element.className = "file-drop-icon ci-cloud-upload mt-2";
+			});
+
+      document.getElementById("reviewPrdImg").src = prdImg;
+      document.getElementById("reviewPrdTitle").innerHTML = prdTitle;
+      document.getElementById("review-target").value = target;
+			document.getElementById("btnWrite").disabled = false;
+
+      const modal = new bootstrap.Modal(document.querySelector('#modalReview'));
+      modal.show();
+    }
+
+    function review() {
+      if (!document.getElementById("review-message").value) {
+				swal.fire({
+					position: 'center',
+					icon: 'warning',
+					title: '내용을 입력하세요.',
+					showConfirmButton: false,
+					timer: 1500,
+				});
+        return;
+      }
+
+			document.getElementById("btnWrite").disabled = true;
+
+      const formData = new FormData();
+      formData.append("order_product_id", document.getElementById("review-target").value);
+      formData.append("contents", document.getElementById("review-message").value);
+      formData.append("order_info", "");
+      if (document.getElementById("files_1").value) {
+        const max_size = 1024 * 1024 * 10;
+        if (document.getElementById("files_1").files[0].size > max_size) {
+          swal.fire("파일 용량은 10MB 이하여야 합니다.");
+          return;
+        }
+
+        formData.append("files", document.getElementById("files_1").files[0]);
+      }
+
+      axios.post("/api/product/review", formData, {
+        headers: {'Content-Type': 'multipart/form-data'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '리뷰가 등록 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = "/{{ request.path_params.store_code }}/order/history";
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function order_cancel(order_id) {
+      swal.fire({
+        position: 'center',
+        icon: 'warning',
+        title: '주문을 취소하시겠습니까?',
+        showCancelButton: true,
+        confirmButtonColor: '#fe696a',
+        confirmButtonText: "주문취소",
+        cancelButtonText: "닫기",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.post("/api/order/cancel/" + order_id, {
+            headers: {'Content-Type': 'application/json'}
+          }).then(function (response) {
+            swal.fire({
+              position: 'center',
+              icon: 'success',
+              title: '주문취소 되었습니다.',
+              showConfirmButton: false,
+              timer: 1500,
+            }).then(() => {
+              window.location.href = "/{{ request.path_params.store_code }}/order/history";
+            })
+          }).catch(function (error) {
+            console.log(error);
+            if (error.response) {
+              alert(error.response.data.msg);
+            }
+          });
+        }
+      })
+    }
+
+    $(document).ready(function () {
+      var fileArea = document.querySelectorAll('.file-drop-area');
+      var _loop2 = function _loop2(i) {
+        var input = fileArea[i].querySelector('.file-drop-input'),
+            icon = fileArea[i].querySelector('.file-drop-icon');
+        input.addEventListener('change', function () {
+          if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              var fileData = e.target.result;
+              var fileName = input.files[0].name;
+              if (fileData.startsWith('data:image')) {
+                var image = new Image();
+                image.src = fileData;
+                image.onload = function () {
+                  icon.className = 'img-preview-box';
+                  icon.innerHTML = '<img src="' + image.src + '" alt="' + fileName + '">';
+                };
+              }
+            };
+            reader.readAsDataURL(input.files[0]);
+          }
+        });
+      };
+      for (var i = 0; i < fileArea.length; i++) {
+        _loop2(i);
+      }
+    });
+
+    function shipping_tracking(code, number) {
+      document.getElementById("t_code").value = code;
+      document.getElementById("t_invoice").value = number;
+      window.open('about:blank', 'trackingForm', 'width=500, height=550, top=100, left=100, fullscreen=no, menubar=no, status=no, toolbar=no, titlebar=yes, location=no, scrollbar=no')
+      document.getElementById("trackingForm").submit()
+    }
+
+    function modalTicket(target) {
+      $("#modalTicketUse input").val('');
+      if (target === 'all') {
+        $(".modal-product").removeClass("d-none");
+        $("#ticketTarget").val(target);
+      } else {
+        $(".modal-product").addClass("d-none");
+        $("#ticketModalPrd" + target).removeClass("d-none");
+        $("#ticketTarget").val(target);
+      }
+      $("#modalTicketUse").modal('show');
+    }
+
+    function cancel_disable_msg() {
+			swal.fire({
+        position: 'center',
+        icon: 'warning',
+        title: '주문취소 불가',
+        text: '식권 포인트 결제는 주문취소가 불가합니다.',
+        showConfirmButton: true,
+        confirmButtonText: "확인",
+      })
+    }
+
+	</script>
+{% endblock %}

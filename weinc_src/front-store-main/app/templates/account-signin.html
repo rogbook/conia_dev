@@ -1,0 +1,317 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+	<div class="container py-3">
+		<div class="row justify-content-center">
+			<div class="col-12">
+				<div class="card border-0 shadow">
+					<div class="card-body p-0" style="background-color: #f1f7fb;">
+            <div class="d-flex flex-column justify-content-center align-items-center bg-white text-center" style="width: 100%; padding: 30px 40px;">
+              <div class="text-muted fs-xs" style="margin-bottom: 12px; line-height: 1;">{{ store.title }}</div>
+              <div><img src="{{ store.logo_mobile }}" alt="logo" style="max-height: 40px;"></div>
+            </div>
+						{% if store.able_target_use != 'P' %}
+              <div style="padding:30px;">
+                <div class="mb-3 text-end"><a href="https://service.coniaworld.com?reset=1&group={{ store.group }}&from=app" class="fs-sm text-dark">기업 선택 다시하기 > </a></div>
+                <div class="fw-bold" style="margin-bottom: 20px;">로그인</div>
+                <form class="needs-validation" novalidate>
+                  <div class="input-group" style="margin-bottom: 10px;">
+                    <div class="w-100">
+                      <input class="form-control" id="email" type="text" placeholder="Email" onkeyup="removeSpace(this);" required>
+                    </div>
+                  </div>
+                  <div class="input-group" style="margin-bottom: 10px;">
+                    <div class="password-toggle w-100">
+                      <input class="form-control" id="password" type="password" placeholder="Password" required>
+                      <label class="password-toggle-btn" aria-label="Show/hide password">
+                        <input class="password-toggle-check" type="checkbox">
+                        <span class="password-toggle-indicator"></span>
+                      </label>
+                    </div>
+                  </div>
+                  <button class="btn btn-primary w-100" type="button" onclick="login()" style="margin-bottom: 10px;">로그인</button>
+                  <a class="btn btn-outline-primary w-100 bg-white" type="button" href="/{{ request.path_params.store_code }}/member/signup">회원가입</a>
+
+                  <div class="d-flex flex-wrap justify-content-between align-items-center fs-xs" style="margin-top: 20px;">
+                    <div class="form-check mb-0" style="line-height: 20px;">
+                      <input type="checkbox" id="checkId" class="form-check-input" style="width: 14px; height: 14px;">
+                      <label for="checkId" class="form-check-label fw-medium fs-xs">아이디 저장</label>
+                    </div>
+                    <div class="mb-1" style="line-height: 20px;">
+                      <a href="/{{ request.path_params.store_code }}/auth/find-id" class="text-muted mb-1">아이디 찾기</a>
+                      <a href="/{{ request.path_params.store_code }}/auth/password-recovery" class="text-muted mb-1"><span class="mx-2">|</span>비밀번호 찾기</a>
+                    </div>
+                  </div>
+                  <div class="d-flex flex-wrap justify-content-end fs-xs mt-2 d-none" id="legacyFind">
+                    <a href="https://coniaworld.com/{{ request.path_params.store_code }}/find/id?from=v3" class="text-muted">이전 버전 아이디 찾기</a>
+                    <a href="https://coniaworld.com/{{ request.path_params.store_code }}/find/pw?from=v3" class="text-muted">
+                      <span class="mx-2">|</span>이전 버전 비밀번호 찾기</a>
+                  </div>
+                </form>            
+                <!-- 소셜로그인 -->
+                <div class="{% if store.domain %}d-none{% endif %}" style="margin-top: 40px;">
+                  <div class="d-flex align-items-center justify-content-between" style="margin-bottom: 20px;">
+                    <div style="width:calc(50% - 50px);">
+                      <hr class="border-dark">
+                    </div>
+                    <div class="text-center fs-sm" style="width:90px;">소셜 로그인</div>
+                    <div style="width:calc(50% - 50px);">
+                      <hr class="border-dark">
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-center" style="gap: 12px;">
+                    <a href="https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=7eMzZBgkGyGvPFLenIja&redirect_uri={{ base_url }}sns/naver-login&state=naver" style="width:42px;"><img src="/static/dist/icons/naver.svg" alt="naver"></a>
+                    <a href="https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=434945f5295e6a7f20a98cedb85e1b27&redirect_uri={{ base_url }}sns/kakao-login" style="width:42px;"><img src="/static/dist/icons/kakao.svg" alt="kakao"></a>
+                    <a href="https://id.payco.com/oauth2.0/authorize?response_type=code&client_id=3RDLN3dsub2LDYkyn0q5_Zq&serviceProviderCode=FRIENDS&redirect_uri={{ base_url }}sns/payco-login&userLocale=ko_KR" style="width:42px;"><img src="/static/dist/icons/payco.svg" alt="payco"></a>
+                    {#								<a href="https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=288584913604-mee7d27m8u7gfdnropnnjb4m7g5qeneg.apps.googleusercontent.com&redirect_uri={{ base_url }}sns/google-login&scope=openid" style="width:42px;">#}
+                    {#									<img src="/static/dist/icons/google.png" alt="google">#}
+                    {#								</a>#}
+                    <a href="javascript:void(0);" onclick="apple_login()" style="width:42px;"><img src="/static/dist/icons/apple.svg" alt="apple"></a>
+                    <div id="appleid-signin" data-color="black" data-border="true" data-type="sign in" class="d-none"></div>
+                  </div>
+                </div>
+              </div>
+						{% else %}
+              <div class="text-center" style="padding: 50px 30px;">
+                <a href="https://id.payco.com/oauth2.0/authorize?response_type=code&client_id=3RDLN3dsub2LDYkyn0q5_Zq&serviceProviderCode=FRIENDS&redirect_uri={{ base_url }}sns/payco-code-login&state={{ store.code }}&userLocale=ko_KR" style="display:block; max-width:300px; width: 100%; margin:0 auto 20px;"><img src="/static/dist/icons/paycoLong.svg" alt="payco"></a>
+                <a href="https://service.coniaworld.com?reset=1&group={{ store.group }}&from=app" class="fs-sm text-dark text-decoration-underline">기업 선택 다시하기</a>
+                <div style="margin-top: 50px;">
+                  <img src="/static/dist/icons/loginBanner.png?v=2" alt="loginBanner" style="max-width: 300px; width: 100%;">
+                </div>
+              </div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block script %}{{ super() }}
+	<script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+	<script>
+    window.onload = function() {
+      let idCookie = getCookie("rememberId");
+      if(idCookie) {
+        document.getElementById("email").value = idCookie;
+        document.getElementById("checkId").checked = true;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const fromCookie = getCookie('from');
+      if (fromCookie === 'app') {
+        document.getElementById('serviceReset').classList.remove('d-none');
+      }
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('from') === 'app') {
+        document.getElementById('serviceReset').classList.remove('d-none');
+      }
+      if (url.searchParams.get('prd')) {
+        window.location.href = "/{{ request.path_params.store_code }}/product/" + url.searchParams.get('prd');
+      }
+    });
+
+    const input = document.getElementById("password");
+    if (input) {
+      input.addEventListener("keyup", function (evt) {
+        if (evt.keyCode === 13 || evt.code === 'Enter') {
+          login();
+        }
+      });
+		}
+
+    AppleID.auth.init({
+      clientId: 'com.coniaworld',
+      scope: '',
+      redirectURI: '{{ base_url }}sns/apple-login',
+      state: '{{ request.path_params.store_code }}',
+      usePopup: true
+    });
+
+    async function apple_login() {
+      try {
+        const data = await AppleID.auth.signIn();
+        console.log(data);
+        const id_token = data.authorization.id_token;
+        window.location.href = `{{ base_url }}sns/apple?store_code={{ request.path_params.store_code }}&id_token=${id_token}&call_type=login`
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+      get: (searchParams, prop) => searchParams.get(prop),
+    });
+
+    // id 저장 30일
+    function rememberId(obj) {
+      if (obj.checked) {
+        let userId = document.getElementById("email").value;
+        setCookie("rememberId", userId, 30);
+      } else {
+				let today = new Date();
+				today.setTime(today.getTime() - 1*24*60*60*1000);
+				document.cookie = escape("rememberId") + "=; path=/; expires=" + today.toUTCString() + ";";
+      }
+    }    
+
+    function enter(event) {
+      if (event.keyCode === 13) {
+        login();
+      }
+    }
+
+    function certifyCodeSwal() {
+      swal.fire({
+        position: 'center',
+        html: 
+          ` 
+            <div class="py-4 lineH-15 fs-md">
+              <div><strong class="text-primary">{{ store.title }}</strong> 회원이 아니신가요?</div>
+              <div>지금 <strong>가입하고 특별한 혜택</strong>을 누려보세요!</div>
+              <div class="mt-3 mb-4"><input id="swal-input" type="text" class="form-control text-center" placeholder="사번 or 코드를 입력해 주세요"></div>
+              <div class="swal2-button-container d-flex gap-2">
+                <button id="custom-cancel" class="btn w-50 border bg-white fw-bold">취소</button>
+                <button id="custom-confirm" class="btn w-50 btn-primary fw-bold">신청</button>
+              </div>
+            </div>
+          `,
+        showCancelButton: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          document.getElementById('custom-cancel').addEventListener('click', () => {
+            Swal.close();
+          });
+
+          // 신청버튼 클릭 시
+          document.getElementById('custom-confirm').addEventListener('click', () => {
+            const inputValue = document.getElementById('swal-input').value;
+            if(inputValue) {
+              use_request(inputValue);
+            }
+          });
+        }
+      });      
+    }
+
+    function login() {
+      let email = document.querySelector("#email");
+      let password = document.querySelector("#password");
+
+      if (!email.value || !password.value) {
+        if (!email.value) {
+          swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: '이메일을 입력하세요.',
+            showConfirmButton: false,
+            timer: 1000
+          });
+        } else if (!password.value) {
+          swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: '비밀번호를 입력하세요.',
+            showConfirmButton: false,
+            timer: 1000
+          });
+        }
+      } else {
+        axios.post("/api/auth/login", {
+          email: email.value,
+          password: password.value,
+          store_code: "{{ request.path_params.store_code }}",
+        }, {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          if (params.referer) {
+            window.location.href = params.referer;
+          } else if (params.next) {
+            window.location.href = "/{{ request.path_params.store_code }}/"+params.next;
+          } else {
+            let path = window.location.pathname;
+            window.location.href = "/" + path.split('/')[1];
+          }
+        }).catch(function (error) {
+          if (error.response) {
+            if (error.response.data.code === "4030001") {
+              swal.fire({
+                position: 'center',
+                icon: 'info',
+                html: '<div class="lineH-15">가입하지 않으셨습니다.<br><strong class="text-primary">{{ store.title }}</strong>에 가입신청 하시겠습니까?</div>',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--cz-primary)',
+                confirmButtonText: "신청",
+                cancelButtonText: "취소",
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  use_request();
+                }
+              })
+            } else if (error.response.data.code === "4030002") {
+              swal.fire("이용 신청 승인 대기중 입니다.")
+            } else if (error.response.data.code === "4030003") {
+              certifyCodeSwal();
+            } else if (error.response.data.code === "4030013") {
+              window.location.href = "/{{ request.path_params.store_code }}/member/signup?data=" + error.response.data.detail;
+            } else if (error.response.data.code === "4030014") {
+              document.getElementById("legacyFind").classList.remove('d-none');
+              alert('아이디 또는 비밀번호를 확인해주세요.');
+            } else {
+              alert(error.response.data.msg);
+            }
+          }
+        });
+
+        // id cookie
+        rememberId(document.getElementById("checkId"));
+      }
+    }
+
+    function use_request(value) {
+      let email = document.querySelector("#email");
+      let password = document.querySelector("#password");
+
+      axios.post("/api/store/{{ request.path_params.store_code }}/user", {
+        email: email.value,
+        password: password.value,
+        value: value,
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        let msg = ''
+        if (response.data.msg === 'confirmed') {
+          msg = '승인 되었습니다.';
+        } else if (response.data.msg === 'failed') {
+          msg = '사번 또는 코드번호를 확인해주세요.';
+        } else {
+          msg = '이용 신청 되었습니다.\n관리자의 승인을 기다려주세요.';
+        }
+        swal.fire({
+          position: 'center',
+          icon: response.data.msg === 'failed' ? 'warning' : 'success',
+          title: msg,
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          if (response.data.msg === 'confirmed') {
+            login();
+          } else if (response.data.msg === 'failed') {
+            certifyCodeSwal();
+          } else {
+            window.location.href = "/{{ request.path_params.store_code }}";
+          }
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function removeSpace(obj) {
+      obj.value = obj.value.replace(/\s+/g, '');
+    }
+	</script>
+{% endblock %}

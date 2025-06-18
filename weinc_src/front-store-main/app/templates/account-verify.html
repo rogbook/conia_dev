@@ -1,0 +1,115 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+	<div class="container">
+		<div class="row h-100 align-items-center pb-3" style="min-height:calc(100vh - 420px);">
+			<div class="col-sm-9 col-12 mx-auto text-center">
+				<div class="d-flex align-items-center justify-content-center gap-3 fs-2 text-info"><img src="/static/dist/icons/weincHome.svg" alt="logo"><span>안녕하세요, 고객님!</span></div>
+				<div class="mx-auto mt-3 py-4 card bg-secondary border-0" style="max-width:500px;">
+					<div class="card-body">
+						<div>
+							서비스 이용을 위해 휴대폰 본인 인증이 필요합니다.<br>
+							본인 인증이 완료되면, 서비스 이용이 가능해집니다.<br>
+							추가적인 도움이 필요하시면 언제든지 고객센터로 문의해 주세요.<br><br>
+							감사합니다!
+						</div>
+						<div class="mt-4"><a href="javascript:void(0)" onclick="cert()" class="btn btn-primary d-block">본인 인증하기</a></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<form name="niceid_form" target="cert_form" id="niceid_form" action="https://nice.checkplus.co.kr/CheckPlusSafeModel/service.cb">
+		<input type="hidden" id="m" name="m" value="service"/>
+		<input type="hidden" id="token_version_id" name="token_version_id" value=""/>
+		<input type="hidden" id="enc_data" name="enc_data" value=""/>
+		<input type="hidden" id="integrity_value" name="integrity_value" value=""/>
+	</form>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script>
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+      get: (searchParams, prop) => searchParams.get(prop),
+    });
+
+    function modProfile(name, mobile, birthday, sex) {
+      axios.put("/api/customer", {
+        "name": name,
+        "mobile": mobile,
+        "birthday": birthday,
+        "sex": sex,
+        "auth_yn": 'Y',
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '인증 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = params.referer;
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function cert() {
+      axios.post("{{ api_host }}/auth/cert-niceid", {
+        return_url: "{{ base_url }}{{ request.path_params.store_code }}/auth/cert-result"
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        let token_version_id = response.data.token_version_id;
+        let enc_data = response.data.enc_data;
+        let integrity_value = response.data.integrity_value;
+        document.querySelector("#token_version_id").value = token_version_id;
+        document.querySelector("#enc_data").value = enc_data;
+        document.querySelector("#integrity_value").value = integrity_value;
+
+        window.addEventListener('message', receiveCertValue, false);
+        setTimeout(() => {
+          if (getPlatformType() === 'PC') {
+            window.open('', 'cert_form', 'width=500, height=550, top=100, left=100, fullscreen=no, menubar=no, status=no, toolbar=no, titlebar=yes, location=no, scrollbar=no');
+          }
+          document.getElementById('niceid_form').submit();
+        });
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function receiveCertValue(event) {
+      console.log(event.data);
+      axios.post("{{ api_host }}/auth/cert-niceid-verify", {
+        token_version_id: event.data.token_version_id,
+        enc_data: event.data.enc_data,
+        integrity_value: event.data.integrity_value,
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        const inputDateStr = response.data.birth;
+        const year = inputDateStr.slice(0, 4);
+        const month = inputDateStr.slice(4, 6);
+        const day = inputDateStr.slice(6, 8);
+        const formattedDateStr = `${year}-${month}-${day}`;
+
+        modProfile(response.data.name, response.data.mobile, formattedDateStr, response.data.gender);
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+	</script>
+{% endblock %}

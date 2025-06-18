@@ -1,0 +1,203 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% if user %}
+	{% block header_user %}{{ user.name }}{% endblock %}
+{% endif %}
+{% block content %}
+	{% if theme and ( bottom_themes or sibling_themes) %}
+	<!-- Page Title-->
+	<!-- <div class="bg-secondary">
+		<div class="container px-lg-3 px-4 py-3 d-lg-block d-none">
+			<div aria-label="breadcrumb" class="">
+				<ol class="breadcrumb px-2">
+					<li class="breadcrumb-item"><a class="text-nowrap" href="/{{ request.path_params.store_code }}"><i class="ci-home"></i></a></li>
+					{% if current_category %}
+						{% if current_category.depth1_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth1_id %}{{ current_category.depth1_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth1_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth2_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth2_id %}{{ current_category.depth2_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth2_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth3_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth3_id %}{{ current_category.depth3_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth3_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth4_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{{ current_category.id }}">{{ current_category.depth4_name }}</a></li>
+						{% endif %}
+					{% else %}
+						<li class="breadcrumb-item text-nowrap" aria-current="page">{{ page_title }}</li>
+					{% endif %}
+				</ol>
+			</div>
+		</div>
+	</div> -->
+	{% endif %}
+
+	<div class="container position-relative">
+		{% if bottom_themes %}
+		<section class="row mx-0 my-3">
+			<div class="col-12 px-0">
+				<div class="py-2 overflow-scroll scroll-d-none x-slider">
+					<ul class="btn-grp nav nav-pills gap-2 flex-nowrap">
+						{% for row in bottom_themes %}
+						<li class="nav-item flex-shrink-0 mx-0"><a href="/{{ request.path_params.store_code }}/theme/{{ row.id }}" class="nav-link rounded-pill border fs-sm {% if theme and theme.id == row.id %} bg-dark text-white shadow-none active {% else %} bg-white {% endif %}" style="padding:0.3rem 0.85rem;">{{ row.name }}</a></li>
+						{% endfor %}
+					</ul>
+				</div>
+				<div class="to_left d-none"></div>
+				<div class="to_right d-none"></div>
+			</div>
+		</section>
+		{% endif %}
+		{% if sibling_themes %}
+		<section class="row mx-0 my-3">
+			<div class="col-12 px-0">
+				<div class="py-2 overflow-scroll scroll-d-none x-slider">
+					<ul class="btn-grp nav nav-pills gap-2 flex-nowrap">
+						{% for row in sibling_themes %}
+						<li class="nav-item flex-shrink-0 mx-0"><a href="/{{ request.path_params.store_code }}/theme/{{ row.id }}" class="nav-link rounded-pill border fs-sm {% if theme and theme.id == row.id %} bg-dark text-white shadow-none active {% else %} bg-white {% endif %}" style="padding:0.3rem 0.85rem;">{{ row.name }}</a></li>
+						{% endfor %}
+					</ul>
+				</div>
+				<div class="to_left d-none"></div>
+				<div class="to_right d-none"></div>				
+			</div>
+		</section>
+		{% endif %}
+	</div>
+
+	<div>
+		{% if layout_data %}
+			{% for layout in layout_data %}
+				{% if layout.type == 'slide-lg' %}
+					{% include 'component-slide-lg.html' %}
+				{% elif layout.type == 'slide-md' %}
+					{% include 'component-slide-md.html' %}
+				{% elif layout.type == 'banner' %}
+					{% include 'component-banner.html' %}
+				{% elif layout.type == 'banner-column-4' %}
+					{% include 'component-banner-column-4.html' %}
+				{% elif layout.type == 'banner-column-2' %}
+					{% include 'component-banner-column-2.html' %}
+				{% elif layout.type == 'column-4' %}
+					{% include 'component-column-4.html' %}
+				{% elif layout.type == 'column-2' %}
+					{% include 'component-column-2.html' %}
+				{% elif layout.type == 'button-grp' %}
+					{% include 'component-button-grp.html' %}
+				{% endif %}
+			{% endfor %}
+		{% else %}
+			{#        상품 리스트 레이아웃 #}
+		{% endif %}
+	</div>
+
+	{% if popups %}
+			<div id="pops_wrap" class="position-fixed bottom-0 start-0 vw-100 vh-100" style="background:rgba(0,0,0,0.5); z-index:9999; display:none;">
+				<div class="position-absolute bottom-0 start-50 translate-middle-x" style="width:95%; max-width:500px;">
+					<div class="swiper swiper_number">
+						<div class="swiper-wrapper">
+							{% for popup in popups %}
+							<div class="swiper-slide">
+								<a href="{{ popup.link }}" class="conia-el-link">
+									<picture>
+										<source media="(min-width: 150px)" srcset="{{ popup.img }}">
+										<img src="{{ popup.img }}" class="rounded-top w-100">
+									</picture>
+								</a>
+							</div>
+							{% endfor %}
+						</div>
+						<div class="swiper-button-next d-none d-lg-block"></div>
+						<div class="swiper-button-prev d-none d-lg-block"></div>
+						<div class="swiper-pagination"></div>
+					</div>
+					<div class="d-flex bg-white border-top">
+						<a href="javascript:;" onclick="closePopupToday();" class="w-50 text-center text-dark py-2 border-end">오늘 하루 그만보기</a>
+						<a href="javascript:;" onclick="closePopup();" class="w-50 text-center text-dark py-2">닫기</a>
+					</div>
+				</div>
+			</div>
+	{% endif %}
+
+
+{% endblock %}
+
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    $(document).ready(function () {
+			if (getCookie("popup") !== "1") {
+				$("#pops_wrap").show();
+			}else {
+				$("#pops_wrap").hide();
+			}
+    });
+
+		// popup close today
+		function closePopupToday() {
+			setCookie("popup", 1, 1);
+			$("#pops_wrap").hide();
+		}
+
+		function closePopup() {
+			$("#pops_wrap").hide();
+		}
+
+		// 관심상품 추가
+    function wish(obj, productId) {
+			event.preventDefault();
+
+      let cl = obj.querySelector("i").classList;
+      let action = '';
+
+      for (const el of cl) {
+        if (el === "ci-heart") {
+          action = 'add';
+        } else {
+          action = 'del';
+        }
+      }
+
+      if (action === 'add') {
+        axios.post("/api/wish/" + productId + "?store_code={{ request.path_params.store_code }}", {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          obj.querySelector("i").classList.remove('ci-heart');
+          obj.querySelector("i").classList.add('ci-heart-filled');
+          obj.querySelector("i").classList.add('text-primary');
+          Swal.fire({
+            icon: 'success',
+            title: '관심상품이 등록되었습니다.',
+            showConfirmButton: false,
+            timer: 1500
+          })
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+      } else {
+        axios.delete("/api/wish/" + productId + "?store_code={{ request.path_params.store_code }}", {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          obj.querySelector("i").classList.remove('ci-heart-filled');
+          obj.querySelector("i").classList.remove('text-primary');
+          obj.querySelector("i").classList.add('ci-heart');
+          Swal.fire({
+            icon: 'success',
+            title: '관심 상품이 삭제 되었습니다.',
+            showConfirmButton: false,
+            timer: 1500
+          })
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+      }
+    }
+	</script>
+{% endblock %}

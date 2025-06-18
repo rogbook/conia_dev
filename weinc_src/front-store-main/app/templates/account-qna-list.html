@@ -1,0 +1,175 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}문의 내역{% endblock %}
+{% block menu_title_breadcrumb %}문의 내역{% endblock %}
+{% block active_qna %}active{% endblock %}
+{% block account_content %}
+	<!-- Nav tabs -->
+	<ul class="nav nav-tabs nav-fill" role="tablist">
+		<li class="nav-item">
+			<a href="#qna" class="nav-link active" data-bs-toggle="tab" role="tab" id="tab_qna">
+				1:1 문의
+			</a>
+		</li>
+		<li class="nav-item">
+			<a href="#product" class="nav-link" data-bs-toggle="tab" role="tab" id="tab_product">
+				상품 문의
+			</a>
+		</li>
+	</ul>
+
+	<!-- Tabs content -->
+	<div class="tab-content">
+		<div class="tab-pane fade show active" id="qna" role="tabpanel">
+			<div class="table-responsive mb-4 d-md-block d-none fs-sm">
+				<table class="table table-hover mb-0 mt-3">
+					<thead>
+					<tr>
+						<th style="width:105px;">등록일</th>
+						<th>제목</th>
+						<th style="width:60px;">상태</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% if qna_list %}
+						{% for qna in qna_list %}
+							<tr>
+								<td class="py-3">{{ (qna.reg_date|string)[:10] }}</td>
+								<td class="py-3"><a class="nav-link-style fw-medium fs-sm ellipsis-1" href="qna/detail/{{ qna.id }}">{{ qna.title }}</a></td>
+								{% if qna.status == "R" %}
+									<td class="py-3 fs-base"><span class="badge bg-info m-0">답변 대기</span></td>
+								{% elif qna.status == "C" %}
+									<td class="py-3 fs-base"><span class="badge bg-success m-0">답변 완료</span></td>
+								{% endif %}
+							</tr>
+						{% endfor %}
+					{% else %}
+						<tr>
+							<td class="text-center" colspan="3">
+								문의 내역이 없습니다.
+							</td>
+						</tr>
+					{% endif %}
+					</tbody>
+				</table>
+			</div>
+			<!-- mobile type -->
+			<div class="d-md-none d-block">
+				{% if qna_list %}
+					{% for qna in qna_list %}
+						<div class="card border px-3 py-2 mb-grid-gutter">
+							<div class="d-flex justify-content-between text-muted mb-3 lineH-10">
+								{% if qna.status == "R" %}
+									<span class="badge bg-info">답변 대기</span>
+								{% elif qna.status == "C" %}
+									<span class="badge bg-success">답변 완료</span>
+								{% endif %}
+								<span class="fs-xs">{{ (qna.reg_date|string)[:10] }}</span>
+							</div>
+							<a class="text-dark ellipsis-2 mb-3" href="qna/detail/{{ qna.id }}"><span class="text-primary">Q. </span>{{ qna.title }}</a>
+							<a class="d-block btn btn-outline-dark" href="qna/detail/{{ qna.id }}">자세히 보기</a>
+						</div>
+					{% endfor %}
+				{% else %}
+					<div class="text-center my-5">문의 내역이 없습니다.</div>
+				{% endif %}
+			</div>
+			<div class="d-flex justify-content-end">
+				<a class="btn btn-primary col-12" href="qna/add">문의하기</a>
+			</div>
+		</div>
+		<div class="tab-pane fade" id="product" role="tabpanel">
+			<div class="table-responsive mb-4 d-md-block d-none fs-sm">
+				<table class="table table-hover mb-0 mt-3">
+					<thead>
+					<tr>
+						<th style="width:105px;">등록일</th>
+						<th>상품</th>
+						<th>제목</th>
+						<th style="width:60px;">상태</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% if product_qna_list %}
+						{% for qna in product_qna_list %}
+							<tr>
+								<td class="py-3">{{ (qna.reg_date|string)[:10] }}</td>
+								<td class="py-3">
+									<div class="d-flex align-items-center">
+										<a class="d-block flex-shrink-0" href="/{{ store.code }}/product/{{ qna.product.id }}" style="width:48px;">
+											<img class="img-1by1 rounded-1" src="{{ qna.product.photos[0].uri }}" alt="Product">
+										</a>
+										<div class="ps-2">
+											<h6 class="widget-product-title ellipsis-2">
+												<a href="/{{ store.code }}/product/{{ qna.product.id }}">{{ qna.product.name }}</a>
+											</h6>
+										</div>
+									</div>
+								</td>
+								<td class="py-3"><a class="nav-link-style fw-medium ellipsis-2" href="product-qna/detail/{{ qna.id }}">{{ qna.title }}</a></td>
+								{% if qna.status == "R" %}
+									<td class="py-3 fs-base"><span class="badge bg-info m-0">답변 대기</span></td>
+								{% elif qna.status == "C" %}
+									<td class="py-3 fs-base"><span class="badge bg-success m-0">답변 완료</span></td>
+								{% endif %}
+							</tr>
+						{% endfor %}
+					{% else %}
+						<tr>
+							<td class="text-center" colspan="4">
+								문의 내역이 없습니다.
+							</td>
+						</tr>
+					{% endif %}
+					</tbody>
+				</table>
+			</div>
+			<!-- mobile type -->
+			<div class="d-md-none d-block">
+				{% if product_qna_list %}
+					{% for qna in product_qna_list %}
+						<div class="card border px-3 py-2 mb-grid-gutter">
+							<div class="d-flex justify-content-between text-muted mb-2 lineH-10">
+								{% if qna.status == "R" %}
+									<span class="badge bg-info">답변 대기</span>
+								{% elif qna.status == "C" %}
+									<span class="badge bg-success">답변 완료</span>
+								{% endif %}
+								<span class="fs-xs">{{ (qna.reg_date|string)[:10] }}</span>
+							</div>						
+							<div class="d-flex align-items-center">
+								<a class="d-block flex-shrink-0" href="/{{ store.code }}/product/{{ qna.product.id }}" style="width:80px;">
+									<img class="img-1by1 rounded-1" src="{{ qna.product.photos[0].uri }}" alt="Product">
+								</a>
+								<a href="/{{ store.code }}/product/{{ qna.product.id }}" class="ms-2 text-dark">{{ qna.product.name }}</a>
+							</div>
+							<div class="mt-3">
+								<a class="text-dark mb-3 ellipsis-2" href="product-qna/detail/{{ qna.id }}"><span class="text-primary">Q. </span>{{ qna.title }}</a>
+								<a class="d-block btn btn-outline-dark" href="product-qna/detail/{{ qna.id }}">자세히 보기</a>
+							</div>
+						</div>
+					{% endfor %}
+				{% else %}
+					<div class="text-center my-5">문의 내역이 없습니다.</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    const tabParam = new URLSearchParams(location.search);
+    const tab = tabParam.get("tab");
+
+    if (tab) {
+      $(".tab-pane").removeClass("active").removeClass("show");
+      $("#" + tab).addClass("active").addClass("show");
+      $(".nav-link").removeClass('active');
+      $("#tab_" + tab).addClass('active');
+    }
+
+    function page(page) {
+      addQueryParam('page', page);
+    }
+	</script>
+{% endblock %}

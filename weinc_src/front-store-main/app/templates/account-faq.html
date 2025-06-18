@@ -1,0 +1,55 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}자주하는 질문{% endblock %}
+{% block menu_title_breadcrumb %}자주하는 질문{% endblock %}
+{% block active_faq %}active{% endblock %}
+{% block account_content %}
+	<div class="fs-md mb-4">
+		{% if faq_list %}
+			<!-- Nav tabs -->
+			<ul class="nav nav-tabs nav-fill" role="tablist">
+				{% for item in faq_list %}
+					<li class="nav-item col-md-4 col-6">
+						<a href="#category{{ loop.index }}" class="nav-link {% if loop.first %}active{% endif %} px-1" data-bs-toggle="tab" role="tab">{{ item.category }}</a>
+					</li>
+				{% endfor %}
+			</ul>
+
+			<!-- Tabs content -->
+			<div class="tab-content">
+				{% for item in faq_list %}
+					{% set parentloop = loop %}
+					<div class="tab-pane fade {% if parentloop.first %}show active{% endif %}" id="category{{ parentloop.index }}" role="tabpanel">
+						<!-- Basic accordion -->
+						<div class="accordion" id="accordion{{ parentloop.index }}">
+							{% for faq_data in item['items'] %}
+								<!-- Item -->
+								<div class="accordion-item">
+									<h2 class="accordion-header" id="heading{{ parentloop.index }}{{ loop.index }}">
+										<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ parentloop.index }}{{ loop.index }}" aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ parentloop.index }}{{ loop.index }}">{{ faq_data['title'] }}</button>
+									</h2>
+									<div class="accordion-collapse collapse" id="collapse{{ parentloop.index }}{{ loop.index }}" aria-labelledby="heading{{ parentloop.index }}{{ loop.index }}" data-bs-parent="#accordion{{ parentloop.index }}">
+										<div class="accordion-body">
+											{{ faq_data['contents']|safe }}
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		{% else %}
+			<div class="text-center">
+				<h6 class="my-5">등록된 게시글이 없습니다.</h6>
+			</div>
+		{% endif %}
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+      function page(page) {
+          addQueryParam('page', page);
+      }
+	</script>
+{% endblock %}

@@ -1,0 +1,295 @@
+from datetime import datetime, date
+
+from pydantic import BaseModel, EmailStr, Field, validator
+from typing import Optional, List
+
+from app.utils.crypto_utils import AES256
+from app.common.consts import AES_KEY, AES_IV
+
+class DataMemberCompany(BaseModel):
+    id: int
+    name: Optional[str]
+    class Config:
+        orm_mode = True
+
+class DataMemberClass(BaseModel):
+    class_code: str
+    grade: Optional[str]
+    class Config:
+        orm_mode = True
+
+class DataStore(BaseModel):
+    code: str
+    title: str
+    class Config:
+        orm_mode = True
+
+class DataLog(BaseModel):
+    action: str
+    msg: str
+    writer: str
+    reg_date: datetime
+    del_column: str
+    class Config:
+        orm_mode = True
+
+class DataSimplePMember(BaseModel):
+    id: int
+    name: str
+    email: str
+
+
+class DataSimpleMember(BaseModel):
+    id: int
+    name: str
+    email: str
+
+    company: Optional[DataMemberCompany]
+
+    class Config:
+        orm_mode = True
+
+
+class AddMember(BaseModel):
+    """
+    회원 등록 데이터 모델
+    """
+    email: EmailStr = Field(title="USER ID(Email)")
+    password: str = Field(title="패스워드")  #
+    name: str = Field(title="이름")
+    nickname: Optional[str] = Field(title="닉네임")
+    mailling: str = Field(title="마케팅 메일 수신여부")
+    sms: str = Field(title="마케팅 문자 수신여부")
+    phone: Optional[str] = Field(title="전화번호")
+    mobile: str = Field(title="휴대전화")
+    zipcode: Optional[str] = Field(title="우편번호")
+    address: Optional[str] = Field(title="주소")
+    address_detail: Optional[str] = Field(title="상세주소")
+    sex: Optional[str] = Field(title="성별")
+    birthday: Optional[date] = Field(title="생년월일")
+    recommend: Optional[str] = Field(title="추천인코드")
+    auth_yn: Optional[str] = Field(title="본인인증 여부")
+    adult_auth: Optional[str] = Field(title="성인인증 여부")
+    referer: str = Field(title="유입경로 full_url")
+    referer_domain: str = Field(title="유입경로 도메인")
+    join_platform: str = Field(title="가입 플랫폼 (P, M, AOS, IOS)")
+    adult_auth_date: Optional[datetime] = Field(title="성인인증 일시")
+    sns_naver: Optional[str] = Field(title="SNS 로그인 연동값 naver")
+    sns_kakao: Optional[str] = Field(title="SNS 로그인 연동값 kakao")
+    sns_google: Optional[str] = Field(title="SNS 로그인 연동값 google")
+    sns_facebook: Optional[str] = Field(title="SNS 로그인 연동값 facebook")
+    sns_apple: Optional[str] = Field(title="SNS 로그인 연동값 apple")
+    sns_payco: Optional[str] = Field(title="SNS 로그인 연동값 payco")
+    bank: Optional[str] = Field(title="환불용 계좌 은행")
+    account: Optional[str] = Field(title="환불용 계좌")
+    admin_yn: Optional[str] = Field(title="관리자 여부")
+    grade: Optional[str] = Field(title="등급")
+    refresh_token: Optional[str] = Field(title="갱신용 토큰")
+    partner: Optional[str] = Field(title="파트너 회원 [N, Y, R(승인대기)]")
+    status: Optional[str] = Field(title="상태값 [P, N, Y, R(승인대기)]")
+    confirm_pass: Optional[str] = Field(title="직원 확인용 패스워드")
+    shop_yn: Optional[str] = Field(title="매장 여부")
+
+class DataMember(BaseModel):
+    """
+    회원 데이터 모델
+    """
+    id: int = Field(title="ID")
+    email: EmailStr = Field(title="USER ID(Email)")
+    name: str = Field(title="이름")
+    nickname: Optional[str] = Field(title="닉네임")
+    mailling: str = Field(title="마케팅 메일 수신여부")
+    sms: str = Field(title="마케팅 문자 수신여부")
+    phone: Optional[str] = Field(title="전화번호")
+    mobile: str = Field(title="휴대전화")
+    zipcode: Optional[str] = Field(title="우편번호")
+    address: Optional[str] = Field(title="주소")
+    address_detail: Optional[str] = Field(title="상세주소")
+    sex: Optional[str] = Field(title="성별")
+    birthday: Optional[date] = Field(title="생년월일")
+    recommend: Optional[str] = Field(title="추천인코드")
+    status: str = Field(title="상태")
+    login_cnt: int = Field(title="로그인 횟수")
+    review_cnt: int = Field(title="상품 리뷰 횟수")
+    order_cnt: int = Field(title="주문 횟수")
+    order_sum: int = Field(title="주문 금액")
+    lastlogin_date: datetime = Field(title="마지막 로그인 일시")
+    reg_date: datetime = Field(title="등록일시")
+    mod_date: datetime = Field(title="수정일시")
+    auth_yn: str = Field(title="본인인증 여부")
+    adult_auth: str = Field(title="성인인증 여부")
+    referer: Optional[str] = Field(title="유입경로 full_url")
+    referer_domain: Optional[str] = Field(title="유입경로 도메인")
+    join_platform: Optional[str] = Field(title="가입 플랫폼 (P, M, AOS, IOS)")
+    marketing_agree_date: datetime = Field(title="마케팅 수신 동의 일시")
+    adult_auth_date: Optional[datetime] = Field(title="성인인증 일시")
+    sns_naver: Optional[str] = Field(title="SNS 로그인 연동값 naver")
+    sns_kakao: Optional[str] = Field(title="SNS 로그인 연동값 kakao")
+    sns_google: Optional[str] = Field(title="SNS 로그인 연동값 google")
+    sns_facebook: Optional[str] = Field(title="SNS 로그인 연동값 facebook")
+    sns_apple: Optional[str] = Field(title="SNS 로그인 연동값 apple")
+    sns_payco: Optional[str] = Field(title="SNS 로그인 연동값 payco")
+    bank: Optional[str] = Field(title="환불용 계좌 은행")
+    account: Optional[str] = Field(title="환불용 계좌")
+    admin_yn: Optional[str] = Field(title="관리자 여부")
+    otp: str = Field(title="OTP 코드")
+    grade: Optional[str] = Field(title="등급")
+    partner: str = Field(title="파트너 회원 [N, Y, R(승인대기)]")
+    memo: Optional[str] = Field(title="관리자 메모")
+    confirm_pass: Optional[str] = Field(title="직원 확인용 패스워드")
+    shop_yn: Optional[str] = Field(title="매장 여부")
+
+    classes: Optional[List[DataMemberClass]]
+    company: Optional[DataMemberCompany]
+    store: Optional[List[DataStore]]
+    log: Optional[List[DataLog]]
+    p_member: Optional[List[DataSimplePMember]]
+
+    class Config:
+        orm_mode = True
+
+    @validator('mobile')
+    def decrypt(cls, v):
+        if len(v) > 24: # ListDataMember 로 들어 가면 두번 호출 되어 복호화된 데이터를 또 다시 복호화 시도 에러 발생
+            v = AES256(AES_KEY, AES_IV).decrypt(v)
+        return v
+
+
+class ListDataMember(BaseModel):
+    total: int = Field(title="Total Count")
+    datas: List[DataMember]
+
+
+class ModMember(BaseModel):
+    """
+    회원 수정 데이터 모델
+    """
+    password: Optional[str] = Field(title="패스워드")  #
+    name: Optional[str] = Field(title="이름")
+    nickname: Optional[str] = Field(title="닉네임")
+    mailling: Optional[str] = Field(title="마케팅 메일 수신여부")
+    sms: Optional[str] = Field(title="마케팅 문자 수신여부")
+    phone: Optional[str] = Field(title="전화번호")
+    mobile: Optional[str] = Field(title="휴대전화")
+    zipcode: Optional[str] = Field(title="우편번호")
+    address: Optional[str] = Field(title="주소")
+    address_detail: Optional[str] = Field(title="상세주소")
+    sex: Optional[str] = Field(title="성별")
+    birthday: Optional[date] = Field(title="생년월일")
+    recommend: Optional[str] = Field(title="추천인코드")
+    status: Optional[str] = Field(title="상태")
+    auth_yn: Optional[str] = Field(title="본인인증 여부")
+    adult_auth: Optional[str] = Field(title="성인인증 여부")
+    marketing_agree_date: Optional[datetime] = Field(title="마케팅 수신 동의 일시")
+    adult_auth_date: Optional[datetime] = Field(title="성인인증 일시")
+    sns_naver: Optional[str] = Field(title="SNS 로그인 연동값 naver")
+    sns_kakao: Optional[str] = Field(title="SNS 로그인 연동값 kakao")
+    sns_google: Optional[str] = Field(title="SNS 로그인 연동값 google")
+    sns_facebook: Optional[str] = Field(title="SNS 로그인 연동값 facebook")
+    sns_apple: Optional[str] = Field(title="SNS 로그인 연동값 apple")
+    sns_payco: Optional[str] = Field(title="SNS 로그인 연동값 payco")
+    bank: Optional[str] = Field(title="환불용 계좌 은행")
+    account: Optional[str] = Field(title="환불용 계좌")
+    admin_yn: Optional[str] = Field(title="관리자 여부")
+    grade: Optional[str] = Field(title="등급")
+    partner: Optional[str] = Field(title="파트너 회원 [N, Y, R(승인대기)]")
+    memo: Optional[str] = Field(title="관리자 메모")
+    confirm_pass: Optional[str] = Field(title="직원 확인용 패스워드")
+    shop_yn: Optional[str] = Field(title="매장 여부")
+
+
+class ModMemberMe(BaseModel):
+    """
+    회원 수정 데이터 모델 (본인)
+    """
+    password: Optional[str] = Field(title="패스워드")
+    name: Optional[str] = Field(title="이름")
+    nickname: Optional[str] = Field(title="닉네임")
+    mailling: Optional[str] = Field(title="마케팅 메일 수신여부")
+    sms: Optional[str] = Field(title="마케팅 문자 수신여부")
+    phone: Optional[str] = Field(title="전화번호")
+    mobile: Optional[str] = Field(title="휴대전화")
+    zipcode: Optional[str] = Field(title="우편번호")
+    address: Optional[str] = Field(title="주소")
+    address_detail: Optional[str] = Field(title="상세주소")
+    sex: Optional[str] = Field(title="성별")
+    birthday: Optional[date] = Field(title="생년월일")
+    auth_yn: Optional[str] = Field(title="본인인증 여부")
+    adult_auth: Optional[str] = Field(title="성인인증 여부")
+    marketing_agree_date: Optional[datetime] = Field(title="마케팅 수신 동의 일시")
+    adult_auth_date: Optional[datetime] = Field(title="성인인증 일시")
+    sns_naver: Optional[str] = Field(title="SNS 로그인 연동값 naver")
+    sns_kakao: Optional[str] = Field(title="SNS 로그인 연동값 kakao")
+    sns_google: Optional[str] = Field(title="SNS 로그인 연동값 google")
+    sns_facebook: Optional[str] = Field(title="SNS 로그인 연동값 facebook")
+    sns_apple: Optional[str] = Field(title="SNS 로그인 연동값 apple")
+    sns_payco: Optional[str] = Field(title="SNS 로그인 연동값 payco")
+    bank: Optional[str] = Field(title="환불용 계좌 은행")
+    account: Optional[str] = Field(title="환불용 계좌")
+    confirm_pass: Optional[str] = Field(title="직원 확인용 패스워드")
+    shop_yn: Optional[str] = Field(title="매장 여부")
+
+
+class AddClass(BaseModel):
+    code: str = Field(title="코드")
+    name: str = Field(title="이름")
+    description: str = Field(title="설명")
+
+class DataClass(BaseModel):
+    code: str = Field(title="코드")
+    name: str = Field(title="이름")
+    description: str = Field(title="설명")
+
+    class Config:
+        orm_mode = True
+
+class ModClass(BaseModel):
+    name: Optional[str] = Field(title="이름")
+    description: Optional[str] = Field(title="설명")
+
+class AddDeliveryAddress(BaseModel):
+    """
+    배송지 등록 데이터 모델
+    """
+    name: str = Field(title="이름")
+    address: str = Field(title="주소")
+    address_detail: str = Field(title="주소 상세")
+    zipcode: str = Field(title="우편번호")
+    mobile: str = Field(title="휴대전화")
+    phone: Optional[str] = Field(title="전화번호")
+    default_yn: str = Field(title="기본 여부")
+
+class DataDeliveryAddress(BaseModel):
+    """
+    배송지 데이터 모델
+    """
+    id: int = Field(title="ID")
+    name: str = Field(title="이름")
+    address: str = Field(title="주소")
+    address_detail: str = Field(title="주소 상세")
+    zipcode: str = Field(title="우편번호")
+    mobile: str = Field(title="휴대전화")
+    phone: Optional[str] = Field(title="전화번호")
+    default_yn: str = Field(title="기본 여부")
+    reg_date: datetime = Field(title="등록일시")
+    mod_date: datetime = Field(title="수정일시")
+
+    class Config:
+        orm_mode = True
+
+class ModDeliveryAddress(BaseModel):
+    """
+    배송지 수정 데이터 모델
+    """
+    name: Optional[str] = Field(title="이름")
+    address: Optional[str] = Field(title="주소")
+    address_detail: Optional[str] = Field(title="주소 상세")
+    zipcode: Optional[str] = Field(title="우편번호")
+    mobile: Optional[str] = Field(title="휴대전화")
+    phone: Optional[str] = Field(title="전화번호")
+    default_yn: Optional[str] = Field(title="기본 여부")
+
+
+class PasswordChange(BaseModel):
+    origin_password: str = Field(title="기존 패스워드")
+    new_password: str = Field(title="새로운 패스워드")

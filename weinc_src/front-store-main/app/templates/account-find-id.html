@@ -1,0 +1,73 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+	<div class="container">
+		<div class="row h-100 align-items-center py-5" style="min-height:calc(100vh - 420px);">
+			<div class="col-sm-9 col-12 mx-auto text-center">
+				<div class="fs-2 text-info"><i class="ci-locked"></i> 아이디를 잊어버리셨나요?</div>
+				<div class="mx-auto mt-3 py-4 card bg-secondary border-0" style="max-width:500px;">
+					<div class="card-body">
+						<div>본인 인증 후 아이디를 확인해 주세요.</div>
+						<div class="mt-3"><a href="javascript:void(0)" class="btn btn-primary d-block" onclick="cert()">본인 인증하기</a></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<form name="niceid_form" target="cert_form" id="niceid_form" action="https://nice.checkplus.co.kr/CheckPlusSafeModel/service.cb">
+		<input type="hidden" id="m" name="m" value="service"/>
+		<input type="hidden" id="token_version_id" name="token_version_id" value=""/>
+		<input type="hidden" id="enc_data" name="enc_data" value=""/>
+		<input type="hidden" id="integrity_value" name="integrity_value" value=""/>
+	</form>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script>
+    function cert() {
+      axios.post("{{ api_host }}/auth/cert-niceid", {
+        return_url: "{{ base_url }}{{ request.path_params.store_code }}/auth/cert-result"
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        let token_version_id = response.data.token_version_id;
+        let enc_data = response.data.enc_data;
+        let integrity_value = response.data.integrity_value;
+        document.querySelector("#token_version_id").value = token_version_id;
+        document.querySelector("#enc_data").value = enc_data;
+        document.querySelector("#integrity_value").value = integrity_value;
+
+        window.addEventListener('message', receiveCertValue, false);
+        setTimeout(() => {
+          if (getPlatformType() === 'PC') {
+            window.open('', 'cert_form', 'width=500, height=550, top=100, left=100, fullscreen=no, menubar=no, status=no, toolbar=no, titlebar=yes, location=no, scrollbar=no');
+          }
+          document.getElementById('niceid_form').submit();
+        });
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function receiveCertValue(event) {
+      console.log(event.data);
+      axios.post("{{ api_host }}/auth/cert-niceid-verify", {
+        token_version_id: event.data.token_version_id,
+        enc_data: event.data.enc_data,
+        integrity_value: event.data.integrity_value,
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        window.location.href = "/{{ store.code }}/auth/find-id/result?token_version_id=" + event.data.token_version_id;
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+	</script>
+{% endblock %}

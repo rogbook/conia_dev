@@ -1,0 +1,11 @@
+{% if item.view_type == 'img' %}
+<li class="flex-shrink-0 my-0">
+  <a href="#Component_{{ item.target }}" onclick="anchorMove(this)" class="anchors img-button btn btn-sm p-0 text-center">
+    <img src="{{ item.view_src }}" alt="button image">
+  </a>
+</li>
+{% else %}
+<li class="flex-shrink-0 my-0 bg-white">
+  <a href="#Component_{{ item.target }}" onclick="anchorMove(this)" class="anchors btn btn-sm btn-outline-dark overflow-hidden">{{ item.name }}</a>
+</li>
+{% endif %}

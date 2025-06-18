@@ -1,0 +1,315 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% if user %}
+	{% block header_user %}{{ user.name }}{% endblock %}
+{% endif %}
+{% block content %}
+	<div class="container py-2 py-sm-3 pb-5">
+		<div class="row">
+			<!-- List of items-->
+			<section class="col-12">
+        <ul class="nav nav-tabs nav-fill" role="tablist">
+          <li class="nav-item">
+            <a href="cart" class="nav-link">배송상품 ({{ d_count }})</a>
+          </li>
+          <li class="nav-item">
+            <a href="cart-u" class="nav-link active">티켓상품 ({{ u_count }})</a>
+          </li>
+        </ul>
+				<div class="tab-content">
+					<div class="tab-pane show active" id="ticket_cart">
+						{% if u_title %}
+							<div class="card mb-3 border-accent fs-sm">
+								<div class="card-header">
+									<span><i class="ci-home me-2"></i>{{ u_title }}</span>
+								</div>
+								<div class="card-body px-3 py-2">
+									{% for prd in u_list %}
+										<div class="cart-product {% if loop.nextitem %}mb-3 pb-3 border-bottom border-accent{% endif %}">
+											<div class="d-flex align-items-center mb-2">
+												<a class="position-relative d-inline-block flex-shrink-0" href="{% if prd.status != 'P' %}/{{ request.path_params.store_code }}/product/{{ prd.product.id }}{% else %}#{% endif %}" style="width:86px;">
+													<img src="{{ prd.product.photos[0].uri }}" class="img-1by1 rounded-1" alt="Product">
+													{% if prd.status == 'S' %}
+														<div class="img-disable">
+															<span class="fw-bold">품절</span>
+														</div>
+													{% elif prd.status == 'P' %}
+														<div class="img-disable">
+															<span class="fw-bold">판매 중지</span>
+														</div>
+													{% elif prd.status == 'P' %}
+														<div class="img-disable">
+															<span class="fw-bold">판매 준비중</span>
+														</div>
+													{% endif %}
+												</a>
+												<div class="ps-3">
+													<a href="/{{ request.path_params.store_code }}/product/{{ prd.product.id }}" class="text-dark fw-bold">{{ prd.product.name }}</a>
+													{% if prd.product.max_purchase_limit and prd.product.max_purchase_limit > 0 %}
+														<div class="text-danger fs-xs"><i class="ci-announcement fs-xs"></i> 해당 상품은 {{ prd.product.max_purchase_limit }}개까지 구매 가능합니다.</div>
+													{% endif %}
+													{% if prd.product.min_purchase_limit and prd.product.min_purchase_limit > 0 %}
+														<div class="text-danger fs-xs"><i class="ci-announcement fs-xs"></i> 해당 상품은 최소 {{ prd.product.min_purchase_limit }}개이상 구매 가능합니다.</div>
+													{% endif %}
+													{% if prd.product.user_limit and prd.product.user_limit > 0 %}
+														<div class="text-danger fs-xs"><i class="ci-announcement fs-xs"></i> 해당 상품은 1인당 {{ prd.product.user_limit }}회 구매 가능합니다.</div>
+													{% endif %}
+												</div>
+											</div>
+											{% for item in prd.options %}
+												<div class="cart-item bg-secondary px-3 py-2 mb-2">
+													<input type="hidden" name="cartId" value="{{ item.cart_id }}">
+													<input type="hidden" name="weight" value="{{ item.option.weight }}">
+													<div class="d-flex justify-content-between align-items-center">
+														<div class="fs-base">
+															{% if item.is_sold_out or item.status == 'S' %}
+																<span class="badge bg-dark">품절</span>
+															{% elif item.status == 'P' %}
+																<span class="badge bg-dark">판매중지</span>
+															{% else %}
+																<input class="form-check-input mt-0 flex-shrink-0" type="checkbox" name="cart-check" onchange="chkChange(this, {{ item.cart_id }})" {% if item.is_sold_out or item.status == 'P' %}disabled{% else %}{% if item.checked %} checked{% endif %}{% endif %}>
+															{% endif %}
+														</div>
+														<div>
+															<button class="btn py-1 px-0 fs-xs text-dark" type="button" onclick="del_cart(this, {{ item.cart_id }})"><i class="ci-close"></i></button>
+														</div>
+													</div>
+													<div class="mb-2">
+														{% if item.option.option_title %}
+															<span class="text-muted">{{ item.option.option_title }}</span><br>
+															{{ item.option.option_1 }}{% if item.option.option_2 %}/{{ item.option.option_2 }}{% endif %}{% if item.option.option_3 %}/{{ item.option.option_3 }}{% endif %}
+															{% if item.option.option_4 %}/{{ item.option.option_4 }}{% endif %}{% if item.option.option_5 %}/{{ item.option.option_5 }}{% endif %}
+														{% else %}
+															{{ prd.product.name }}
+														{% endif %}
+													</div>
+													<div class="d-flex justify-content-between align-items-center">
+														<div class="input-group input-group-sm bg-white" style="max-width:7.8rem;">
+															<button class="btn btn-outline-dark px-2 py-1" type="button" {% if item.is_sold_out or item.status == 'P' %}disabled{% endif %} onclick="minus(this, {{ item.option.selling_price }}, {{ item.cart_id }})"><i class="fa-solid fa-minus"></i></button>
+															<input class="form-control text-center px-2 py-1" type="text" {% if item.is_sold_out or item.status == 'P' %}disabled{% endif %} name="cnt" value="{{ item.count }}" onkeyup="valueChange(this, {{ item.option.selling_price }}, {{ item.cart_id }})">
+															<button class="btn btn-outline-dark px-2 py-1" type="button" {% if item.is_sold_out or item.status == 'P' %}disabled{% endif %} onclick="plus(this, {{ item.option.selling_price }}, {{ item.cart_id }})"><i class="fa-solid fa-plus"></i></button>
+														</div>
+														<div class="text-accent fw-bold fs-base">
+															<span class="cart-total">{{ "{:,.0f}".format(item.option.selling_price * item.count) }}</span>원
+														</div>													
+													</div>
+												</div>
+											{% endfor %}
+										</div>
+									{% endfor %}
+								</div>
+							</div>
+            {% else %}
+              <h6 class="text-center mt-5">장바구니에 담긴 상품이 없습니다.</h6>
+						{% endif %}
+					</div>
+				</div>
+
+			</section>
+			<!-- Sidebar-->
+			<aside class="col-12 pt-5 mt-0">
+				<div class="card">
+					<div class="card-body">
+						<div class="d-flex justify-content-between align-items-baseline mb-4 pb-1 border-bottom">
+							<div class="h6 mb-3 pb-1 fs-lg fw-bold">총 주문금액</div>
+							<div class="fs-3 fw-normal text-primary fw-bold"><span id="allTotal">0</span>원</div>
+						</div>
+						<a class="btn btn-primary btn-shadow d-block w-100 mt-4 {% if not u_title %}disabled{% endif %}" href="#" onclick="order()">
+							<i class="ci-card fs-lg me-2"></i>주문 하기
+						</a>						
+					</div>
+				</div>
+			</aside>
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    window.onload = function () {
+      totalChange();
+    }
+
+		const countToast = Swal.mixin({
+			toast: true,
+			position: "top-end",
+			showConfirmButton: false,
+			timer: 3000,
+			didOpen: (toast) => {
+				toast.onmouseenter = Swal.stopTimer;
+				toast.onmouseleave = Swal.resumeTimer;
+			}
+		});
+
+    function plus(obj, price, cartId) {
+      const max_cnt = 100;
+      const input = obj.closest("div").querySelector("input");
+      const total = obj.closest(".cart-item").querySelector(".cart-total");
+      let cnt = input.value;
+      if (cnt < max_cnt) {
+        input.value = Number(cnt) + 1;
+        cntChange(total, Number(cnt) + 1, price);
+        mod_cart(Number(cnt) + 1, null, cartId);
+      }
+
+			countToast.fire({
+				icon: "success",
+				title: "수량이 " + input.value + "개로 변경되었습니다."
+			});
+    }
+
+    function minus(obj, price, cartId) {
+      const input = obj.closest("div").querySelector("input");
+      const total = obj.closest(".cart-item").querySelector(".cart-total");
+      let cnt = input.value;
+      if (Number(cnt) > 1) {
+        input.value = Number(cnt) - 1;
+        cntChange(total, Number(cnt) - 1, price);
+        mod_cart(Number(cnt) - 1, null, cartId);
+      }
+
+			countToast.fire({
+				icon: "success",
+				title: "수량이  " + input.value + "개로 변경되었습니다."
+			});			
+    }
+
+    function cntChange(obj, cnt, price) {
+      obj.innerText = (cnt * price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      totalChange();
+    }
+
+    function valueChange(obj, price, cartId) {
+      const total = obj.closest(".cart-item").querySelector(".cart-total");
+      if (/^[0-9]+$/g.test(obj.value)) {
+        const max_cnt = 100;
+        let cnt = Number(obj.value);
+        if (max_cnt < cnt) {
+          obj.value = max_cnt;
+          cnt = max_cnt;
+        }
+        mod_cart(Number(cnt), null, cartId);
+        cntChange(total, cnt, price);
+      } else {
+        obj.value = 1;
+        mod_cart(1, null, cartId);
+        cntChange(total, 1, price);
+      }
+    }
+
+    function chkChange(obj, cartId) {
+      totalChange()
+      mod_cart(null, obj.checked ? 1 : 0, cartId);
+    }
+
+    function totalChange() {
+      const checkedList = document.querySelectorAll("input[name=cart-check]:checked");
+      let allShipping = 0;
+      let allTotal = 0;
+
+      for (const chkObj of checkedList) {
+        const total = chkObj.closest(".cart-item").querySelector(".cart-total");
+        allTotal = allTotal + Number(total.innerHTML.replaceAll(",", ""));
+      }
+
+      const total = document.getElementById("allTotal");
+      total.innerText = (allTotal + allShipping).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function mod_cart(cnt, checked, cartId) {
+      let data = {};
+      if (cnt) {
+        data.count = cnt;
+      }
+      if (checked !== null) {
+        data.checked = checked;
+      }
+      axios.put("/api/cart/" + cartId, data, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        totalChange();
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function del_cart(obj, cartId) {
+      Swal.fire({
+        title: "해당 상품을 장바구니에서 삭제하시겠습니까?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#fe696a",
+        confirmButtonText: "예",
+        cancelButtonText: "취소"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.delete("/api/cart/" + cartId, {
+            headers: {'Content-Type': 'application/json'}
+          }).then(function (response) {
+            //const card = obj.closest(".card");
+            //const card_body = obj.closest(".card-body");
+            //const item = obj.closest(".cart-item");
+            //item.remove();
+
+            //if (card_body.textContent.trim() === "") {
+            //    card.remove();
+            //}
+
+            //totalChange();
+            window.location.reload();
+          }).catch(function (error) {
+            console.log(error);
+            if (error.response) {
+              alert(error.response.data.msg);
+            }
+          });
+        } else if (result.isDenied) {
+          return false;
+        }
+      });
+    }
+
+    function order() {
+      let cartData = [];
+
+      let checkedList = document.querySelectorAll("input[name=cart-check]:checked");
+      for (const chkObj of checkedList) {
+        const cartId = chkObj.closest(".cart-item").querySelector("input[name=cartId]").value;
+        cartData.push(cartId);
+      }
+
+      if (checkedList.length === 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: '주문하실 상품을 선택해주세요.',
+          confirmButtonText: "닫기"
+        })
+        return;
+      }
+
+      let data = {
+        store_code: "{{ request.path_params.store_code }}",
+        type: "cart",
+        carts: cartData
+      }
+
+      axios.post("/api/order/sheet", data, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        window.location.href = "/{{ request.path_params.store_code }}/order/sheet/" + response.data.id;
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    window.onload = function () {
+      totalChange();
+    }
+	</script>
+{% endblock %}

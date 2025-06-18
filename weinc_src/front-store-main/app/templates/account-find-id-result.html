@@ -1,0 +1,41 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+	<div class="container py-4 py-lg-5 my-4">
+		<div class="row">
+			<div class="col-sm-9 col-12 mx-auto text-center">
+				<div class="fs-2 text-success"><i class="ci-check-circle"></i><br>아이디 찾기가 완료되었습니다.</div>
+				<div class="mx-auto mt-3 py-4 card bg-secondary border-0" style="max-width:500px;">
+					<div class="card-body">
+              <div class="fs-sm mb-1 text-muted">해당 회원정보로 가입된 아이디입니다.</div>
+						{% for id in ids %}
+							<div class="fs-lg">{{ id }}</div>
+						{% endfor %}
+						<div class="mt-5"><a href="/{{ store.code }}/auth/login" class="btn btn-primary">로그인 하러 가기</a></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<form name="niceid_form" target="cert_form" id="niceid_form" action="https://nice.checkplus.co.kr/CheckPlusSafeModel/service.cb">
+		<input type="hidden" id="m" name="m" value="service"/>
+		<input type="hidden" id="token_version_id" name="token_version_id" value=""/>
+		<input type="hidden" id="enc_data" name="enc_data" value=""/>
+		<input type="hidden" id="integrity_value" name="integrity_value" value=""/>
+	</form>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script>
+    {% if not ids %}
+      swal.fire({
+        position: 'center',
+        icon: 'warning',
+        title: '아이디를 찾을 수 없습니다.',
+        showConfirmButton: true,
+      }).then(() => {
+        window.location.href = "/{{ request.path_params.store_code }}/auth/find-id"
+      })
+    {% endif %}
+	</script>
+{% endblock %}

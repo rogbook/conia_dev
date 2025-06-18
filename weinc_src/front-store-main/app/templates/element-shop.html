@@ -1,0 +1,17 @@
+<a href="/{{ request.path_params.store_code }}/shop/{{ item.id }}" class="d-block h-100 text-dark">
+	<div class="card product-card h-100 border-0">
+		<img class="w-100 rounded" src="{{ item.img }}" alt="shop">
+		<div class="d-flex flex-column text-center py-2 h-100">
+			<div class="fw-bold word-keep-all fs-sm">{{ item.name }}</div>
+			<div class="text-dgray ellipsis-2 word-keep-all fs-sm">{% if item.subtitle %}{{ item.subtitle }}{% endif %}</div>
+			{% if item.badges %}
+				<!--뱃지 영역-->
+				<div class="d-flex justify-content-center gap-1 flex-wrap" style="margin:6px 0;">
+					{% for badge in item.badges %}
+						<span class="badge badge-shadow position-static" style="background-color: {{ badge.color }}">{{ badge.name }}</span>
+					{% endfor %}
+				</div>
+			{% endif %}
+		</div>
+	</div>
+</a>

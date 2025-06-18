@@ -1,0 +1,5 @@
+{% if layout.link and layout.link.title %}
+	<div class="d-flex flex-sm-row flex-column justify-content-center py-2">
+		<a class="col-12 btn btn-md btn-outline-dark conia-el-link" href="{% if layout.link.full_link %}{{ layout.link.full_link }}{% else %}/{{ request.path_params.store_code }}{{ layout.link.link }}{% endif %}" style="white-space:wrap;">{{ layout.link.title }}</a>
+	</div>
+{% endif %}

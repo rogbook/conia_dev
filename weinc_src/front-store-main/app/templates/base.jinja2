@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	{% block head %}
+		<meta charset="utf-8">
+		<title>{% block title %}{% endblock %}</title>
+		<!-- SEO Meta Tags-->
+		<meta name="description" content="{% block seo_description %}{% endblock %}">
+		<meta name="keywords" content="{% block seo_keywords %}{% endblock %}">
+		<meta name="author" content="{% block seo_author %}{% endblock %}">
+		<!-- Open Graph -->
+		<meta property="og:title" content="{{ title }}">
+		<meta property="og:type" content="website">
+		{% block opengraph %}
+		<meta property="og:url" content="{{ url_for('index') }}{{ request.path_params.store_code }}">
+		<meta property="og:image" content="{% if store.logo_pc %}{{ store.logo_pc }}{% else %}{{ url_for('static', path='img/coniaworld_logo.png') }}{% endif %}">
+		{% endblock %}
+		<!-- Viewport-->
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- Safari Phonenumber active-false -->
+		<meta name="format-detection" content="telephone=no"/>
+		<meta name="msapplication-TileColor" content="#ffffff">
+		<meta name="theme-color" content="#ffffff">
+		<link rel="icon" type="image/png" sizes="16x16" href="{% if store.favicon %}{{ store.favicon }}{% else %}{{ url_for('static', path='favicon.ico') }}{% endif %}">
+		<link rel="mask-icon" color="#fe6a6a" href="{{ url_for('static', path='safari-pinned-tab.svg') }}">
+
+		<!-- Vendor Styles including: Font Icons, Plugins, etc.-->
+		<link rel="stylesheet" media="screen" href="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/simplebar/dist/simplebar.min.css"/>
+		<link rel="stylesheet" media="screen" href="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/drift-zoom/dist/drift-basic.min.css"/>
+		<link rel="stylesheet" href="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/fontawesome/css/fontawesome.css">
+		<link rel="stylesheet" href="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/fontawesome/css/brands.css">
+		<link rel="stylesheet" href="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/fontawesome/css/solid.css">
+		<link rel="stylesheet" href="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/select2/css/select2.css">
+		<link rel="stylesheet" href="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/sweetalert2/css/sweetalert2.min.css">
+		<link rel="stylesheet" href="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/swiper/swiper-bundle.min.css">
+
+		<link rel="stylesheet" media="screen" href="{{ url_for('static', path='css/theme.min.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', path='css/point_preset.css') }}?v=1">
+		<link rel="stylesheet" href="{{ url_for('static', path='css/common.css') }}?v=20241002">
+
+		<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WL577JDN');</script>
+		<!-- End Google Tag Manager -->
+
+		{% if request.query_params.from and request.query_params.from == 'app' %}
+			<script>
+				let exp = new Date(2030, 11, 31);
+				document.cookie = "from=app; path=/; expires="+exp.toUTCString();
+			</script>
+		{% endif %}
+
+		<script>
+      document.addEventListener("DOMContentLoaded", function () {
+        let linkEl = document.querySelectorAll('.conia-el-link');
+        linkEl.forEach(function (el) {
+          let hrefValue = el.getAttribute('href');
+          if (!hrefValue.startsWith('http') && !hrefValue.startsWith('/')) {
+            let origin = window.location.origin;
+            let store_code = "/{{ request.path_params.store_code }}/";
+            el.href = origin + store_code + hrefValue;
+          }
+        });
+      });
+		</script>
+	{% endblock %}
+</head>
+<body class="handheld-toolbar-enabled shadow">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WL577JDN"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+{% block body %}
+
+	<main class="page-wrapper">
+		<!-- Navbar 3 Level (Light)-->
+		{% block header %}
+			<header>
+				<div class="bg-light shadow-none" style="border-bottom:1px solid #efefef;">
+					<!-- 최상단 -->
+					<div class="navbar navbar-light">
+						<!-- nav-container -->
+						<div class="container">
+						{% if path_count > 1 %}
+							<!-- 뒤로가기 -->
+							<a href="javascript:history.back();" class="btn py-1 px-2 text-dark d-block"><i class="ci-arrow-left"></i></a>
+						{% else %}
+							<!-- mobile 로고 -->
+							<a class="navbar-brand flex-shrink-0 {% if 'MENU_LOGIN' in exclude_menu %} mx-auto {% endif %}" href="/{{ request.path_params.store_code }}">
+								<img src="{% if store.logo_mobile %}{{ store.logo_mobile }}{% else %}{{ url_for('static', path='img/coniaworld_logo.png') }}{% endif %}" width="120" alt="logo">
+							</a>
+						{% endif %}
+							<!-- pc 로고 -->
+							<!-- <a class="navbar-brand d-none d-lg-block flex-shrink-0 {% if 'MENU_LOGIN' in exclude_menu %} mx-auto {% endif %}" href="/{{ request.path_params.store_code }}">
+								<img src="{% if store.logo_pc %}{{ store.logo_pc }}{% else %}{{ url_for('static', path='img/coniaworld_logo.png') }}{% endif %}" width="142" alt="logo">
+							</a> -->
+							{% if "MENU_LOGIN" not in exclude_menu %}
+								<!-- 검색 -->
+								<!-- <div class="input-group d-none d-lg-flex mx-4">
+									<input id="pc_search_box" onkeyup="if(window.event.keyCode == 13) { productSearch('pc_search_box'); }" class="form-control pe-5 rounded" type="text" name="q" minlength="2" placeholder="찾고 싶은 상품을 검색해보세요.">
+									<a href="javascript:;" onclick="productSearch('pc_search_box');" class="position-absolute top-50 end-0 translate-middle-y text-muted fs-base px-3"><i class="ci-search"></i></a>
+								</div> -->
+							{% endif %}
+							<div class="navbar-toolbar d-flex flex-shrink-0 align-items-center">
+								{% if "MENU_LOGIN" not in exclude_menu %}
+									{% if "MENU_FAVORITE" not in exclude_menu %}
+										<!-- <a class="navbar-tool d-none d-lg-flex" href="/{{ request.path_params.store_code }}/order/wishlist">
+											<span class="navbar-tool-tooltip">관심 상품</span>
+											<div class="navbar-tool-icon-box"><i class="navbar-tool-icon ci-heart"></i></div>
+										</a> -->
+									{% endif %}
+								{% endif %}
+								{% if cookies.from and cookies.from == 'app' %}
+									<div class="navbar-tool">
+										<a href="javascript:void(0);" class="navbar-tool-icon-box"  id="pushBell" onclick="openPush()" style="line-height: 3rem;">
+											<i class="navbar-tool-icon custom-icon icon-bell" style="font-size: 21px;"></i>
+										</a>
+									</div>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+					{% block theme %}
+					<!-- 테마 메뉴 -->
+					{% if themes %}
+						<div class="position-relative px-2">
+							<div class="overflow-scroll scroll-d-none x-slider">
+								<ul class="btn-grp d-flex align-items-center flex-nowrap list-unstyled mb-0 primary_menu">
+									{% for theme in themes %}
+										{% if theme.top_visible == 'Y' and theme.status == 'Y' %}
+											<li class="px-3 mb-0 flex-shrink-0 {% if page_title == theme.name or (top_theme and top_theme.name == theme.name) %}active{% endif %}">
+												<a href="/{{ request.path_params.store_code }}/theme/{{ theme.id }}" class="py-2 d-inline-block text-dark {% if page_title == theme.name or (top_theme and top_theme.name == theme.name) %}fw-bold focus{% endif %}">{{ theme.name }}</a>
+											</li>
+										{% endif %}
+									{% endfor %}
+									{% for board in board_grp %}
+										{% if board.menu_visible == 'Y' and board.status == 'Y' %}
+											<li class="px-3 mb-0 flex-shrink-0 {% if page_title == board.name %}active{% endif %}">
+												<a href="/{{ request.path_params.store_code }}/board/{{ board.id }}" class="py-2 d-inline-block text-dark {% if page_title == board.name %}fw-bold{% endif %}">{{ board.name }}</a>
+											</li>
+										{% endif %}
+									{% endfor %}
+								</ul>
+							</div>
+							<div class="to_left d-none"></div>
+							<div class="to_right d-none"></div>
+						</div>
+					{% endif %}
+					{% endblock %}
+
+					<!-- 상단 메뉴 -->
+					<!--
+					<div class="navbar navbar-expand-lg navbar-light navbar-stuck-menu mt-n2 py-0 d-lg-block d-none">
+						<div class="container">
+							<div class="d-lg-flex d-none pt-3 pb-2">
+								{% if category %}
+									<ul class="navbar-nav navbar-mega-nav pe-lg-2 me-lg-2">
+										<li class="nav-item dropdown">
+											<a class="nav-link d-flex align-items-center py-2" href="#" data-bs-toggle="dropdown" data-bs-auto-close="false">
+												<i class="ci-menu me-3"></i><span class="fw-bold">카테고리</span>
+											</a>
+											<ul class="dropdown-menu">
+												{% for depth1 in category %}
+													<li class="dropdown position-static">
+														{% if depth1.sub %}
+															<a class="dropdown-item {% if depth1.sub %}dropdown-toggle{% endif %}" {% if depth1.sub %}data-bs-toggle="dropdown" data-bs-auto-close="outside" {% endif %} href="/{{ request.path_params.store_code }}/category/{{ depth1.id }}"
+																 onclick="move_page(this)">{{ depth1.name }}</a>
+														{% else %}
+															<a class="dropdown-item" href="/{{ request.path_params.store_code }}/category/{{ depth1.id }}">{{ depth1.name }}</a>
+														{% endif %}
+														{% if depth1.sub %}
+															{% set depth2_list = depth1.sub %}
+															<ul class="dropdown-menu" style="min-height: calc(100% + 0.25rem)">
+																{% for depth2 in depth2_list %}
+																	<li class="dropdown position-static">
+																		{% if depth2.sub %}
+																			<a class="dropdown-item {% if depth2.sub %}dropdown-toggle{% endif %}" {% if depth2.sub %}data-bs-toggle="dropdown" data-bs-auto-close="outside" {% endif %} href="/{{ request.path_params.store_code }}/category/{{ depth2.id }}"
+																				 onclick="move_page(this)">{{ depth2.name }}</a>
+																		{% else %}
+																			<a class="dropdown-item" href="/{{ request.path_params.store_code }}/category/{{ depth2.id }}">{{ depth2.name }}</a>
+																		{% endif %}
+																		{% if depth2.sub %}
+																			{% set depth3_list = depth2.sub %}
+																			<ul class="dropdown-menu" style="min-height: calc(100% + 0.25rem)">
+																				{% for depth3 in depth3_list %}
+																					<li class="dropdown position-static">
+																						<a class="dropdown-item" href="/{{ request.path_params.store_code }}/category/{{ depth3.id }}">{{ depth3.name }}</a>
+																					</li>
+																				{% endfor %}
+																			</ul>
+																		{% endif %}
+																	</li>
+																{% endfor %}
+															</ul>
+														{% endif %}
+													</li>
+												{% endfor %}
+											</ul>
+										</li>
+									</ul>
+								{% endif %}
+								<ul class="navbar-nav primary_menu">
+									{% for theme in themes %}
+										{% if theme.top_visible == 'Y' and theme.status == 'Y' and theme.visible == 'Y' %}
+											<li class="nav-item {% if page_title == theme.name or (top_theme and top_theme.name == theme.name) %}active{% endif %}">
+												<a class="nav-link py-2 text-dark {% if page_title == theme.name or (top_theme and top_theme.name == theme.name) %}fw-bold{% endif %}" href="/{{ request.path_params.store_code }}/theme/{{ theme.id }}">{{ theme.name }}</a>
+											</li>
+										{% endif %}
+									{% endfor %}
+									{% for board in board_grp %}
+										{% if board.menu_visible == 'Y' and board.status == 'Y' %}
+											<li class="nav-item {% if page_title == board.name %}active{% endif %}">
+												<a class="nav-link py-2 text-dark {% if page_title == board.name %}fw-bold{% endif %}" href="/{{ request.path_params.store_code }}/board/{{ board.id }}">{{ board.name }}</a>
+											</li>
+										{% endif %}
+									{% endfor %}
+								</ul>
+							</div>
+						</div>
+					</div>
+					-->
+					<!-- 모바일 메뉴 -->
+					<!-- <div id="mobile_nav" tabindex="-1" data-bs-backdrop="false" class="offcanvas offcanvas-end pt-3" style="width:100vw;">
+						<div class="offcanvas-header justify-content-end py-0 px-3">
+							<button type="button" data-bs-dismiss="offcanvas" aria-label="Close" class="btn btn-outline-secondary btn-sm"><i class="ci-close"></i></button>
+						</div>
+						<div class="position-relative mt-3 fs-sm border-top">
+							<ul class="mobile_depth1 navbar-nav border-end" style="width:130px; height:100vh;">
+								{% for depth1 in category %}
+									<li>
+										{% if depth1.sub %}
+											<a class="nav-link border-bottom position-relative {% if loop.index == 1 %}bg-primary text-white{% endif %}" href="javascript:void(0);" onclick="mobileDepth2(this)">
+												{{ depth1.name }}<small class="position-absolute top-50 end-0 me-3 translate-middle-y" style="font-size:7px;"><i class="ci-arrow-right"></i></small>
+											</a>
+										{% else %}
+											<a class="nav-link bg-light border-bottom" href="/{{ request.path_params.store_code }}/category/{{ depth1.id }}">{{ depth1.name }}</a>
+										{% endif %}
+										{% if depth1.sub %}
+											{% set depth2_list = depth1.sub %}
+											<ul class="mobile_depth2 navbar-nav position-absolute top-0 end-0 {% if loop.index == 1 %} d-block {% else %} d-none {% endif %}" style="width:calc(100% - 130px);">
+												<li>
+													<a href="/{{ request.path_params.store_code }}/category/{{ depth1.id }}" class="nav-link bg-light border-bottom">{{ depth1.name }} 전체보기</a>
+												</li>
+												{% for depth2 in depth2_list %}
+													<li>
+														{% if depth2.sub %}
+															<a class="nav-link border-bottom" data-bs-toggle="collapse" aria-expanded="false" href="#depth3_{{ depth2.id }}">
+																<span>{{ depth2.name }}</span>
+																<i class="ci-arrow-down float-end opacity-50 pt-1"></i>
+															</a>
+															{% if depth2.sub %}
+																{% set depth3_list = depth2.sub %}
+																<ul id="depth3_{{ depth2.id }}" class="collapse w-100 mx-0 bg-secondary list-unstyled p-0">
+																	<li>
+																		<a href="/{{ request.path_params.store_code }}/category/{{ depth2.id }}" class="nav-link bg-secondary border-bottom">{{ depth2.name }} 전체보기</a>
+																	</li>
+																	{% for depth3 in depth3_list %}
+																		<li><a class="nav-link border-bottom" href="/{{ request.path_params.store_code }}/category/{{ depth3.id }}">{{ depth3.name }}</a></li>
+																	{% endfor %}
+																</ul>
+															{% endif %}
+														{% else %}
+															<a class="nav-link bg-light border-bottom" href="/{{ request.path_params.store_code }}/category/{{ depth2.id }}">{{ depth2.name }}</a>
+														{% endif %}
+													</li>
+												{% endfor %}
+											</ul>
+										{% endif %}
+									</li>
+								{% endfor %}
+							</ul>
+						</div>
+					</div> -->
+					<!-- 모바일 마이메뉴 -->
+					{% if user %}
+						<div id="mobile_mymenu">
+							<div class="mobile_offcanvas_wrap">
+								<div class="page-title-overlap bg-dark pt-3 px-3">
+									<div class="d-flex justify-content-end">
+										<button type="button" class="btn btn-outline-secondary btn-sm text-white" onclick="offCanvasClose('#mobile_mymenu');"><i class="ci-close"></i></button>
+									</div>
+								</div>
+								<div class="row mx-0 px-3">
+									<div class="col-12 px-0 mb-4 card mx-auto bg-white shadow border-0 overflow-hidden">
+										<div class="card-header py-4 text-center border-0">
+											{# <h5 class="mb-0">{{ user.name }}</h5> #}
+											<div class="text-muted">{{ user.email }}</div>
+										</div>
+										<div class="card-body p-0">
+											<div class="bg-secondary text-muted px-4 py-2 fs-sm">마이메뉴</div>
+											<ul class="list-unstyled mb-0">
+												{% if "MENU_ORDER_LIST" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_order %}{% endblock %}" href="/{{ request.path_params.store_code }}/order/history">
+															<i class="fa-solid fa-receipt nav-link-icon"></i>주문내역
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_MY_TICKET" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_ticket %}{% endblock %}" href="/{{ request.path_params.store_code }}/order/ticket">
+															<i class="fa-solid fa-ticket nav-link-icon"></i>오늘티켓
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_E_COUPON" not in exclude_menu %}
+												{# <li class="border-bottom mb-0">
+													<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_ecoupon %}{% endblock %}" href="/{{ request.path_params.store_code }}/ecoupon">
+														<i class="fa-solid fa-barcode nav-link-icon"></i>마이 브랜드티켓
+													</a>
+												</li> #}
+												{% endif %}
+												{% if "MENU_MY_COUPON" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_coupon %}{% endblock %}" href="/{{ request.path_params.store_code }}/member/coupon">
+															<i class="fa-solid fa-percent nav-link-icon"></i>쿠폰
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_FAVORITE" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_wish %}{% endblock %}" href="/{{ request.path_params.store_code }}/order/wishlist">
+															<i class="fa-solid fa-heart nav-link-icon"></i>관심상품
+															{% if wish_count %}<span class="badge rounded bg-primary ms-auto wish-count">{{ wish_count }}</span>{% endif %}
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_MY_INFO" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_profile %}{% endblock %}" href="/{{ request.path_params.store_code }}/member/profile">
+															<i class="fa-solid fa-user nav-link-icon"></i>개인정보수정
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_ADDRESS" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_address %}{% endblock %}" href="/{{ request.path_params.store_code }}/member/address">
+															<i class="fa-solid fa-truck-fast nav-link-icon"></i>배송지관리
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_NOTICE" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_notice %}{% endblock %}" href="/{{ request.path_params.store_code }}/board/notice">
+															<i class="fa-solid fa-bullhorn nav-link-icon"></i>공지사항
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_FAQ" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_faq %}{% endblock %}" href="/{{ request.path_params.store_code }}/board/faq">
+															<i class="fa-solid fa-headset nav-link-icon"></i>자주하는 질문
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_QNA" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_qna %}{% endblock %}" href="/{{ request.path_params.store_code }}/board/qna">
+															<i class="fa-solid fa-circle-question nav-link-icon"></i>문의내역
+														</a>
+													</li>
+												{% endif %}
+												{% if "MENU_REVIEW" not in exclude_menu %}
+													<li class="border-bottom mb-0">
+														<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_review %}{% endblock %}" href="/{{ request.path_params.store_code }}/board/review">
+															<i class="fa-solid fa-comment-dots nav-link-icon"></i>상품리뷰
+														</a>
+													</li>
+												{% endif %}
+												{% if cookies.from and cookies.from == 'app' %}
+												<li class="border-none mb-0">
+													<a class="nav-link-style d-flex align-items-center px-4 py-3" href="https://service.coniaworld.com?reset=1&group={{ store.group }}&from=app">
+														<i class="fa-solid fa-retweet nav-link-icon"></i>서비스 재선택
+													</a>
+												</li>
+												{% endif %}
+												<li class="border-none mb-0">
+													<a class="d-flex align-items-center px-4 py-3 bg-primary text-white" href="/{{ request.path_params.store_code }}/auth/logout">
+														<i class="fa-solid fa-power-off nav-link-icon" style="color:#fff !important;"></i>로그아웃
+													</a>
+												</li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					{% endif %}
+					<!-- 모바일 검색메뉴 -->
+					<div id="mobile_search">
+						<div class="mobile_offcanvas_wrap p-3">
+							<div class="offcanvas-header justify-content-end p-0">
+								<button type="button" class="btn btn-outline-secondary btn-sm" onclick="offCanvasClose('#mobile_search');"><i class="ci-close"></i></button>
+							</div>
+							<!-- Search-->
+							<div class="input-group mt-5 position-relative">
+								<input id="mobile_search_box" onkeyup="if(window.event.keyCode == 13) { productSearch('mobile_search_box'); }" class="form-control form-control-md ps-2 pe-5 border-0 rounded-0 border-bottom border-dark border-2" type="text" name="q" minlength="2" placeholder="찾고 싶은 상품을 검색해보세요.">
+								<a href="javascript:;" onclick="productSearch('mobile_search_box');" class="position-absolute top-50 end-0 px-3 translate-middle-y text-dark"><i class="ci-search"></i></a>
+							</div>
+							<div class="mt-5 pt-3">
+								<div class="d-flex justify-content-between">
+									<span class="fw-bold">최근 검색어</span>
+									<a href="javascript:;" onclick="searchReset();" class="text-muted fs-sm">지우기</a>
+								</div>
+								<div id="recent_search" class="mt-2 fs-sm d-flex gap-2 flex-wrap"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</header>
+		{% endblock %}
+    <div id="app">
+		{% block content %}
+		{% endblock %}
+    </div>
+
+		<div id="modal_gallery" class="modal modal-lg fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content border-0 rounded-0 shadow-none bg-none">
+					<div class="modal-header border-0 px-4 py-1 justify-content-end">
+						<button type="button" class="btn px-2 py-1 text-white" data-bs-dismiss="modal" aria-label="Close"><i class="ci-close"></i></button>
+					</div>
+					<div class="modal-body px-3 py-1">
+						<img src="" class="gallery_img w-100">
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+	{% block footer %}
+		<!-- Footer-->
+		<footer class="footer bg-dark">
+			<div class="pt-4 bg-darker">
+				<div class="container">
+					<div class="row">
+						{% if "MENU_LOGIN" not in exclude_menu %}
+							<div class="col-md-6 text-center text-md-start">
+								<div class="widget widget-links widget-light">
+									<ul class="widget-list d-flex flex-wrap justify-content-center justify-content-md-start">
+										<li class="widget-list-item me-2"><a class="widget-list-link" href="/{{ store.code }}/terms">이용 약관</a></li>
+										<li class="widget-list-item mx-2"><a class="widget-list-link" href="/{{ store.code }}/terms?tab=privacy">개인정보취급방침</a></li>
+										<li class="widget-list-item mx-2"><a class="widget-list-link" href="/{{ store.code }}/terms?tab=teenager">청소년보호정책</a></li>
+										<li class="widget-list-item ms-2"><a class="widget-list-link" href="/{{ store.code }}/terms?tab=seller">판매자정보</a></li>
+									</ul>
+								</div>
+							</div>
+						{% endif %}
+						<!-- SNS 링크 -->
+						<div class="col-md-6 text-center text-md-end d-none">
+							<div class="mb-3 mt-3 mt-md-0">
+								<a class="btn-social bs-light bs-twitter me-1 mb-2" href="#">
+									<i class="ci-twitter"></i>
+								</a>
+								<a class="btn-social bs-light bs-facebook mx-1 mb-2" href="#">
+									<i class="ci-facebook"></i>
+								</a>
+								<a class="btn-social bs-light bs-instagram mx-1 mb-2" href="#">
+									<i class="ci-instagram"></i>
+								</a>
+								<a class="btn-social bs-light bs-youtube ms-1 mb-2" href="#">
+									<i class="ci-youtube"></i>
+								</a>
+							</div>
+						</div>
+					</div>
+					<div class="pb-2 fs-xs text-light opacity-50">(주)코니아랩<br>
+						주소: 서울특별시 광진구 천호대로 690 3층 <br>
+						사업자 등록번호: 180-81-00867<br>
+						대표자: 김규식,나현정<br>
+						건강기능식품 영업신고번호: 제20210040295호<br>
+						의료기기판매업 신고번호: 제2745호<br>
+						통신판매업 신고번호: 제2019-서울광진-1022호<br>
+						이메일: conia_cs@conia.co.kr<br>
+						카카오톡 채널: 윙-크<br>
+						(주)코니아랩은 통신판매중개자로서 통신판매 당사자가 아니며, 판매자가 판매하는 상품정보 및 거래에 관한 의무와 책임을 지지 않습니다.
+					</div>
+					<div class="pb-4 fs-xs text-light opacity-50 text-center text-md-start">Copyright ⓒ <a class="text-light" href="https://www.conialab.com" target="_blank" rel="noopener">ConiaLab Corp.</a> All rights reserved.</div>
+				</div>
+			</div>
+		</footer>
+	{% endblock %}
+	<!-- Toolbar for handheld devices (Default)-->
+	<div class="handheld-toolbar border-bottom">
+		<div class="d-table table-layout-fixed w-100">
+			<a class="d-table-cell handheld-toolbar-item" href="javascript:void(0)" onclick="offCanvasOpen('#mobile_search');">
+				<span class="handheld-toolbar-icon"><i class="custom-icon icon-search"></i></span>
+				<span class="handheld-toolbar-label">검색</span>
+			</a>
+			{% if "MENU_LOGIN" not in exclude_menu %}
+				<a class="d-table-cell handheld-toolbar-item" href="/{{ request.path_params.store_code }}/order/cart">
+					<span class="handheld-toolbar-icon position-relative">
+						<i class="navbar-tool-icon custom-icon icon-cart"></i>
+							{% if cart_count > 0 %}
+								<span class="badge rounded-pill bg-primary position-absolute px-1 py-0" style="min-width:15px; height:15px; line-height:15px; top:2px; left:56%;">{{ cart_count }}</span>
+							{% endif %}
+					</span>
+					<span class="handheld-toolbar-label">장바구니</span>
+				</a>				
+			{% endif %}
+			{% if "MENU_MY_TICKET" not in exclude_menu %}
+			{# <a class="d-table-cell handheld-toolbar-item" href="/{{ request.path_params.store_code }}/order/ticket">
+				<span class="handheld-toolbar-icon"><i class="custom-icon icon-ticket"></i></span>
+				<span class="handheld-toolbar-label">마이티켓</span>
+			</a> #}
+			{% endif %}
+			{% if "MENU_LOGIN" not in exclude_menu %}
+				<a class="d-table-cell handheld-toolbar-item align-middle" href="/{{ request.path_params.store_code }}">
+					<img src="/static/dist/icons/weincHome.svg" alt="Home" style="width:24px;">
+				</a>
+				{% if user %}
+					<a class="d-table-cell handheld-toolbar-item" href="javascript:void(0)" onclick="offCanvasOpen('#mobile_mymenu');">
+						<span class="handheld-toolbar-icon"><i class="custom-icon icon-user"></i></span>
+						<span class="handheld-toolbar-label">마이메뉴</span>
+					</a>
+				{% else %}
+					<a class="d-table-cell handheld-toolbar-item" href="/{{ request.path_params.store_code }}/auth/login">
+						<span class="handheld-toolbar-icon"><i class="custom-icon icon-login"></i></span>
+						<span class="handheld-toolbar-label">로그인</span>
+					</a>
+				{% endif %}
+				{% if "MENU_FAVORITE" not in exclude_menu %}
+				<a class="d-table-cell handheld-toolbar-item" href="/{{ request.path_params.store_code }}/order/wishlist">
+					<span class="handheld-toolbar-icon"><i class="custom-icon icon-heart"></i></span>
+					<span class="handheld-toolbar-label">관심상품</span>
+				</a>
+				{% endif %}
+			{% endif %}
+		</div>
+	</div>
+	<!-- Back To Top Button-->
+	<a class="btn-scroll-top" href="javascript:void(0);" onclick="scrolltoTop();">
+		<i class="btn-scroll-top-icon ci-arrow-up"> </i>
+	</a>
+
+	{% block script %}
+		<!-- kakao map -->
+		<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=d833a1f57334b2b11635ede9110e0791&libraries=services"></script>
+		<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.5.0/kakao.min.js" integrity="sha384-kYPsUbBPlktXsY6/oNHSUDZoTX6+YI51f63jCPEIPFP09ttByAdxd2mEjKuhdqn4" crossorigin="anonymous"></script>
+		<script>
+      Kakao.init('d833a1f57334b2b11635ede9110e0791');
+		</script>
+
+		<!-- Vendor scrits: js libraries and plugins-->
+		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/sweetalert2/js/sweetalert2.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/jquery/jquery.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/jsbarcode/JsBarcode.all.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/swiper/swiper-bundle.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/simplebar/dist/simplebar.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/tiny-slider/dist/min/tiny-slider.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/drift-zoom/dist/Drift.min.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/vendor/select2/js/select2.min.js"></script>
+		<script src="https://player.vimeo.com/api/player.js"></script>
+		<script src="https://conia-static.s3.ap-northeast-2.amazonaws.com/dist/js/app_link.js?v=2"></script>
+		<!-- Main theme script-->
+		<script src="{{ url_for('static', path='js/theme.js') }}"></script>
+		<script src="{{ url_for('static', path='js/aconic-common.js?v=20240731') }}"></script>
+		<script type="module" src="{{ url_for('static', path='js/app.js?v20240621') }}"></script>
+
+		<script type="text/javascript">
+      // mobile menu depth2
+      function mobileDepth2(obj) {
+        $(".mobile_depth1 .nav-link").removeClass("bg-primary").removeClass("text-white");
+        $(".mobile_depth2").removeClass("d-block").addClass("d-none");
+        $(obj).addClass("bg-primary").addClass("text-white");
+        $(obj).siblings(".mobile_depth2").removeClass("d-none").addClass("d-block");
+      }
+
+			function offCanvasOpen(obj) {
+				$("body").css("overflow","hidden");
+				$(obj).show();
+			}
+
+			function offCanvasClose(obj) {
+				$("body").css("overflow","auto");
+				$(obj).hide();
+			}
+
+			const pillBox = document.getElementById("recent_search");
+			let currentSearchCookie = getCookie("search");
+			function cookieSet(){
+				const searchParams = new URL(location.href).searchParams;
+				const getKeyword = searchParams.get("q");
+
+				let newSearchList = '';
+				if(getKeyword) {
+					newSearchList = getKeyword + ",";
+				}
+				if(currentSearchCookie) {
+					newSearchList += currentSearchCookie;
+				}
+
+				let pillArr;
+				let newSearchCookie = '';
+				if(newSearchList) {
+					pillArr = newSearchList.split(",");
+					pillArr = [...new Set(pillArr)];
+					pillArr.forEach(function(pill) {
+						if(!pill) return;
+						pillBox.innerHTML += "<a href='/{{ request.path_params.store_code }}/product/search?q="+ pill +"' class='flex-shirink-0 rounded-pill border p-2 text-dark'>" + pill + "</a>";
+
+						newSearchCookie += pill + ",";
+					});
+				}
+
+				setCookie("search", newSearchCookie, 30);
+			}
+
+			function productSearch(input) {
+				let url = "/{{ request.path_params.store_code }}/product/search?q=";
+				let keyword = document.getElementById(input).value.trim();
+				if (keyword) {
+					if(keyword.length < 2) {
+						swal.fire({
+							icon: "warning",
+							title: "검색어를 2자 이상 입력하세요.",
+							showConfirmButton: false,
+							timer: 1000
+						});
+						return;
+					}
+					location.href = url + keyword;
+				} else {
+					swal.fire({
+						icon: "warning",
+						title: "검색어를 입력하세요.",
+						showConfirmButton: false,
+						timer: 1000
+					});
+				}
+			}
+
+			function searchReset() {
+				let today = new Date();
+				today.setTime(today.getTime() - 1*24*60*60*1000);
+				document.cookie = escape("search") + "=; path=/; expires=" + today.toUTCString() + ";";
+				pillBox.innerHTML = "";
+				currentSearchCookie = false;
+			}
+
+      function openPush() {
+        byapps_api_call('shopPush');
+      }
+			document.addEventListener("DOMContentLoaded", function() {
+				// mobilePrimaryFocus();
+				// search cookie
+				cookieSet();
+        setCookie('current_store', '{{ request.path_params.store_code }}');
+        //document.cookie = "store_code={{ request.path_params.store_code }}; Secure";
+        sessionStorage.setItem('store_code', '{{ request.path_params.store_code }}');
+        if (byapps_is_api_enable()) {
+          setCookie('from', 'app', 30);
+					let mid = '{% if user %}{{ user.email }}{% endif %}';
+					if (mid !== '') {
+            byapps_api_call('loginCert', mid);
+					}
+				}
+      });
+
+      // modal gallery
+      function modalGallery(img) {
+        $(".gallery_img").attr("src", img);
+        $("#modal_gallery").modal("show");
+      }
+
+      $("#modal_gallery .modal-body").click(function () {
+        $("#modal_gallery").modal("hide");
+      });
+		</script>
+	{% endblock %}
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,198 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% if user %}
+	{% block header_user %}{{ user.name }}{% endblock %}
+{% endif %}
+{% block content %}
+	<div class="container py-2 py-sm-3">
+		{% if board_grp_data.view_end_content == 'Y' %}
+			<ul class="nav nav-tabs nav-fill" role="tablist">
+				<li class="nav-item">
+					<a href="#proceeding" class="nav-link active" data-bs-toggle="tab" role="tab">진행중</a>
+				</li>
+				<li class="nav-item">
+					<a href="#closed" class="nav-link" data-bs-toggle="tab" role="tab">종료</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div id="proceeding" class="tab-pane fade show active" role="tabpanel">
+					{% if able_boards or future_boards %}
+						{% if board_grp_data.view_type == 'thumbnail' %}
+							<div class="row mx-n1">
+								{% for board in able_boards %}
+									<div class="col-sm-6 col-12 mb-grid-gutter px-1">
+										<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+											<div class="card h-100 border-0">
+												<img src="{% if board.image %}{{ board.image }}{% endif %}" class="card-img-top img-1by1" alt="Event">
+												<div class="card-body px-3 pt-3 pb-0 lineH-12">
+													<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+													<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+												</div>
+											</div>
+										</a>
+									</div>
+								{% endfor %}
+								{% for board in future_boards %}
+									<div class="col-sm-6 col-12 mb-grid-gutter px-1">
+										<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+											<div class="card h-100 border-0">
+												<img src="{% if board.image %}{{ board.image }}{% endif %}" class="card-img-top img-1by1" alt="Event">
+												<div class="card-body px-3 pt-3 pb-0 lineH-12">
+													<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+													<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+												</div>
+											</div>
+										</a>
+									</div>
+								{% endfor %}
+							</div>
+						{% elif board_grp_data.view_type == 'banner' %}
+							<div class="row mx-n1">
+								{% for board in able_boards %}
+									<div class="col-md-6 col-12 mb-grid-gutter px-1">
+										<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+											<div class="card h-100 border-0">
+												<div class="d-flex align-items-center">
+													<img src="{% if board.image %}{{ board.image }}{% endif %}" class="img-2by1" alt="Event">
+												</div>
+												<div class="p-3 pb-0 lineH-12">
+													<p class="h6 mb-1 fw-bold ellipsis-2">{{ board.title }}</p>
+													<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+												</div>
+											</div>
+										</a>
+									</div>
+								{% endfor %}
+								{% for board in future_boards %}
+									<div class="col-md-6 col-12 mb-grid-gutter px-1">
+										<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+											<div class="card h-100 rounded-0 border-0">
+												<div class="d-flex align-items-center">
+													<img src="{% if board.image %}{{ board.image }}{% endif %}" class="img-2by1" alt="Event">
+												</div>
+												<div class="card-body px-3 pb-0 lineH-12">
+													<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+													<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+												</div>
+											</div>
+										</a>
+									</div>
+								{% endfor %}
+							</div>
+						{% endif %}
+					{% else %}
+						<h6 class="my-5 text-center">진행중인 이벤트가 없습니다.</h6>
+					{% endif %}
+				</div>
+
+				<div id="closed" class="tab-pane fade" role="tabpanel">
+					{% if board_grp_data.view_type == 'thumbnail' %}
+						<div class="row mx-n1">
+							{% for board in disable_boards %}
+								<div class="col-sm-6 col-12 mb-grid-gutter px-1">
+									<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+										<div class="card h-100 border-0">
+											<img src="{% if board.image %}{{ board.image }}{% endif %}" class="card-img-top img-1by1 img-gray" alt="Event">
+											<div class="card-body px-3 pt-3 pb-0 lineH-12">
+												<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+												<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+											</div>
+										</div>
+									</a>
+								</div>
+							{% endfor %}
+						</div>
+					{% elif board_grp_data.view_type == 'banner' %}
+						<div class="row mx-n1">
+							{% for board in disable_boards %}
+								<div class="col-md-6 col-12 mb-grid-gutter px-1">
+									<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+										<div class="card h-100 border-0">
+											<div class="d-flex align-items-center">
+												<img src="{% if board.image %}{{ board.image }}{% endif %}" class="img-2by1 img-gray" alt="Event">
+											</div>
+											<div class="card-body px-3 pb-0 lineH-12">
+												<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+												<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+											</div>
+										</div>
+									</a>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		{% else %}
+			<div id="proceeding" class="tab-pane fade show active" role="tabpanel">
+				{% if able_boards or future_boards %}
+					{% if board_grp_data.view_type == 'thumbnail' %}
+						<div class="row mx-n1">
+							{% for board in able_boards %}
+								<div class="col-sm-6 col-12 mb-grid-gutter px-1">
+									<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+										<div class="card h-100 border-0">
+											<img src="{% if board.image %}{{ board.image }}{% endif %}" class="card-img-top img-1by1" alt="Event">
+											<div class="card-body px-3 pt-3 pb-0 lineH-12">
+												<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+												<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %}</p>
+											</div>
+										</div>
+									</a>
+								</div>
+							{% endfor %}
+							{% for board in future_boards %}
+								<div class="col-sm-6 col-12 mb-grid-gutter px-1">
+									<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+										<div class="card h-100 border-0">
+											<img src="{% if board.image %}{{ board.image }}{% endif %}" class="card-img-top img-1by1" alt="Event">
+											<div class="card-body px-3 pt-3 pb-0 lineH-12">
+												<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+												<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+											</div>
+										</div>
+									</a>
+								</div>
+							{% endfor %}
+						</div>
+					{% elif board_grp_data.view_type == 'banner' %}
+						<div class="row mx-n1">
+							{% for board in able_boards %}
+								<div class="col-md-6 col-12 mb-grid-gutter px-1">
+									<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+										<div class="card h-100 border-0">
+											<div class="d-flex align-items-center">
+												<img src="{% if board.image %}{{ board.image }}{% endif %}" class="img-2by1" alt="Event">
+											</div>
+											<div class="card-body px-3 pb-0 lineH-12">
+												<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+												<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+											</div>
+										</div>
+									</a>
+								</div>
+							{% endfor %}
+							{% for board in future_boards %}
+								<div class="col-md-6 col-12 mb-grid-gutter px-1">
+									<a href="{{ board_grp_data.id }}/detail/{{ board.id }}" class="d-block text-dark">
+										<div class="card h-100 rounded-0 border-0">
+											<div class="d-flex align-items-center">
+												<img src="{% if board.image %}{{ board.image }}{% endif %}" class="img-2by1" alt="Event">
+											</div>
+											<div class="card-body px-3 pb-0 lineH-12">
+												<p class="h6 fw-bold ellipsis-2">{{ board.title }}</p>
+												<p class="fs-xs text-muted">{% if board.start_date or board.end_date %}{% if board.start_date %}{{ (board.start_date|string)[:10] }}{% endif %} ~ {% if board.end_date %}{{ (board.end_date|string)[:10] }}{% endif %}{% endif %} </p>
+											</div>
+										</div>
+									</a>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				{% else %}
+					<h6 class="my-5 text-center">진행중인 이벤트가 없습니다.</h6>
+				{% endif %}
+			</div>
+		{% endif %}
+	</div>
+{% endblock %}

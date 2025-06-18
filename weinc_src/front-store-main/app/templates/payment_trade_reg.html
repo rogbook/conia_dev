@@ -1,0 +1,62 @@
+<!DOCTYPE>
+<html>
+<head>
+	<title>{{ req_data.site_name }}</title>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=yes, target-densitydpi=medium-dpi">
+	<script type="text/javascript">
+    function goReq() {
+      if ('{{res_data.Code}}' == "0000") {
+        document.form_trade_reg.action = "/{{ request.path_params.store_code }}/order/mobile";
+        document.form_trade_reg.submit();
+      }
+      else {
+        alert("Error Code : {{res_data.Code}}, Error Msg : {{res_data.Message}}");
+        history.back();
+      }
+    }
+	</script>
+</head>
+<body onload="goReq();">
+<form name="form_trade_reg" method="post">
+	<!--//footer-->
+	<input type="hidden" name="site_cd" value="{{ req_data.site_cd }}"/>
+	<input type="hidden" name="site_name" value="{{ req_data.site_name }}"/>
+	<input type="hidden" name="ordr_idxx" value="{{ req_data.ordr_idxx }}"/>
+	<input type="hidden" name="good_mny" value="{{ req_data.good_mny }}"/>
+	<input type="hidden" name="good_name" value="{{ req_data.good_name }}"/>
+	<input type="hidden" name="buyr_name" value="{{ req_data.buyr_name }}"/>
+	<input type="hidden" name="buyr_tel2" value="{{ req_data.buyr_tel2 }}"/>
+	<input type="hidden" name="buyr_mail" value="{{ req_data.buyr_mail }}"/>
+
+	<input type="hidden" name="Ret_URL" value="{{ req_data.Ret_URL }}"/>
+
+	<input type="hidden" name="pay_code" value="{{ post_data.pay_code }}"/>
+	<input type="hidden" name="ActionResult" value="{{ post_data.actionResult }}"/>
+	<input type="hidden" name="van_code" value="{{ post_data.van_code }}"/>
+
+	<input type="hidden" name="approvalKey" value="{{ res_data.approvalKey }}"/>
+	<input type="hidden" name="traceNo" value="{{ res_data.traceNo }}"/>
+	<input type="hidden" name="PayUrl" value="{{ res_data.PayUrl }}"/>
+
+	<input type="hidden" name="enc_info" value=""/>
+	<input type="hidden" name="res_cd" value="{{ res_data.Code }}"/>
+	<input type="hidden" name="res_msg" value="{{ res_data.Message }}"/>
+
+	<input type="hidden" name="sheet_id" value="{{ req_data.sheet_id }}"/>
+	<input type="hidden" name="address_id" value="{{ req_data.address_id }}"/>
+	<input type="hidden" name="total_shipping" value="{{ req_data.total_shipping }}"/>
+	<input type="hidden" name="memo" value="{{ req_data.memo }}"/>
+	<input type="hidden" name="client_type" value="{{ req_data.client_type }}"/>
+	<input type="hidden" name="user_name" value="{{ req_data.user_name }}"/>
+	<input type="hidden" name="user_phone" value="{{ req_data.user_phone }}"/>
+	<input type="hidden" name="user_email" value="{{ req_data.user_email }}"/>
+	<input type="hidden" name="active_coupon" value="{{ req_data.active_coupon }}"/>
+	<input type="hidden" name="comm_tax_mny" value="{{ req_data.comm_tax_mny }}"/>
+	<input type="hidden" name="comm_vat_mny" value="{{ req_data.comm_vat_mny }}"/>
+	<input type="hidden" name="comm_free_mny" value="{{ req_data.comm_free_mny }}"/>
+</form>
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}배송지{% endblock %}
+{% block menu_title_breadcrumb %}배송지{% endblock %}
+{% block active_address %}active{% endblock %}
+{% block account_content %}
+    <!-- Addresses list-->
+    <form class="needs-validation" novalidate id="form" onsubmit="return false;">
+        <div class="row gx-4 gy-3">
+            <div class="col-sm-6">
+                <label class="form-label" for="checkout-email">수령인</label>
+                <input class="form-control" type="text" id="name" value="{% if address %}{{ address.name }}{% endif %}" required>
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label" for="checkout-phone">배송지명</label>
+                <input class="form-control" type="text" id="title" value="{% if address %}{{ address.title }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="row gx-4 gy-3 pt-3">
+            <div class="col-sm-6">
+                <label class="form-label" for="checkout-email">연락처</label>
+                <input class="form-control" type="tel" id="mobile" value="{% if address %}{{ address.mobile }}{% endif %}" onkeyup="inputNumberFormat(this); textLimit(this, 15);" required>
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label" for="checkout-email">우편번호</label>
+                <div class="input-group">
+                    <input class="form-control" type="text" id="zipcode" value="{% if address %}{{ address.zipcode }}{% endif %}" onclick="search_address()" required readonly>
+                    <button type="button" class="btn btn-primary" onclick="search_address()">우편번호</button>
+                </div>
+            </div>
+        </div>
+        <div class="row gx-4 gy-3 pt-3">
+            <div class="col-sm-6">
+                <label class="form-label" for="checkout-email">주소</label>
+                <input class="form-control" type="text" id="address" value="{% if address %}{{ address.address }}{% endif %}" onclick="search_address()" required readonly>
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label" for="checkout-email">상세 주소</label>
+                <input class="form-control" type="text" id="address_detail" value="{% if address %}{{ address.address_detail }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="default_yn" {% if address and address.default_yn == 'Y'%}checked disabled{% endif %}>
+            <label class="form-check-label" for="default_yn">기본 배송지로 지정</label>
+        </div>
+
+        <div class="text-sm-end text-center pt-4"><button class="btn btn-primary col-12" type="submit" onclick="post_address({{ request.query_params.address_id }})">{% if address %}배송지 수정{% else %}배송지 등록{% endif %}</button></div>
+    </form>
+{% endblock %}
+{% block script %}{{ super() }}
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script type="text/javascript">
+    const address_form = document.getElementById("form");
+
+    function search_address() {
+        new daum.Postcode({
+            oncomplete: function (data) {
+                document.getElementById("zipcode").value = data.zonecode;
+                document.getElementById("address").value = data.address;
+            }
+        }).open();
+    }
+
+    function post_address(id) {
+        const title = document.getElementById("title").value;
+        const name = document.getElementById("name").value;
+        const address = document.getElementById("address").value;
+        const address_detail = document.getElementById("address_detail").value;
+        const zipcode = document.getElementById("zipcode").value;
+        const mobile = document.getElementById("mobile").value;
+        const default_yn = document.getElementById("default_yn").checked ? "Y" : "N";
+
+        if (title && name && address && address_detail && zipcode && mobile) {
+            const data = {
+                title: title,
+                name: name,
+                address: address,
+                address_detail: address_detail,
+                zipcode: zipcode,
+                mobile: mobile,
+                default_yn: default_yn
+            }
+            if (id) {
+                axios.put("/api/customer/delivery-address/" + id, data, {
+                    headers: {'Content-Type': 'application/json'}
+                }).then(function (response) {
+                    swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: '수정 되었습니다.',
+                        showConfirmButton: false,
+                        timer: 1500,
+                    }).then(() => {
+                        window.location.href = "/{{ request.path_params.store_code }}/member/address";
+                    })
+                }).catch(function (error) {
+                    console.log(error);
+                    if (error.response) {
+                        alert(error.response.data.msg);
+                    }
+                });
+            } else {
+                axios.post("/api/customer/delivery-address", data, {
+                    headers: {'Content-Type': 'application/json'}
+                }).then(function (response) {
+                    swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: '등록 되었습니다.',
+                        showConfirmButton: false,
+                        timer: 1500,
+                    }).then(() => {
+                        window.location.href = "/{{ request.path_params.store_code }}/member/address";
+                    })
+                }).catch(function (error) {
+                    console.log(error);
+                    if (error.response) {
+                        alert(error.response.data.msg);
+                    }
+                });
+            }
+        }
+    }
+</script>
+{% endblock %}

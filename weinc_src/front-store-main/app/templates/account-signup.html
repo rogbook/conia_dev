@@ -1,0 +1,467 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+	<div class="container pt-4 pb-5">
+		<div class="row justify-content-center">
+      <h2 class="h4 mt-3 mb-2">회원 가입</h2>
+      <p class="fs-sm text-muted mb-4 pb-2">회원가입이 완료된 후 부터 특별한 서비스를 이용하실 수 있습니다.</p>
+      {% if legacy_user_data %}
+        <div class="d-flex justify-content-center w-100 mb-4 py-5 px-3 bg-faded-primary rounded fs-sm">
+          <div>
+            <h5 class="fw-bold">회원 정보 업데이트</h5>
+            안녕하세요. 고객님<br>
+            기존에 이용하시던 몰이 <span class="fw-bold">새로운 환경</span>으로 업데이트 되었습니다.<br>
+            <span class="fw-bold">아이디가 </span><span class="fw-bold text-primary">이메일 형식</span><span class="fw-bold">으로 변경</span>되었으니 재설정 부탁드립니다.<br>
+            재설정 후 더 나은 <span class="fw-bold">서비스와 혜택</span>을 이용해 보세요.<br>
+            감사합니다.
+          </div>
+        </div>
+      {% endif %}
+      <form onsubmit="return false;">
+        <div class="row gx-4 gy-3">
+          {% if store.able_target_use == 'E' %}
+            <!-- 아이디 형식 -->
+            <div class="col-12">
+              <label class="form-label" for="email">이메일 (아이디)<span class="text-danger ps-1 h6">*</span></label>
+              <div class="position-relative">
+                <div class="d-flex align-items-center">
+                  <input class="form-control" type="text" id="email" placeholder="아이디" style="background:transparent;" onkeyup="removeSpace(this);" {% if legacy_user_data and legacy_user_data.LOGIN_ID %}value="{{ legacy_user_data.LOGIN_ID }}"{% endif %}>
+                  <div class="ms-2 text-muted">@{{ store.verify_code }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary col-12" type="button" onclick="check_email('{{ store.verify_code }}')">아이디 중복확인</button>
+            </div>
+          {% else %}
+            <!-- 이메일 형식 -->
+            <div class="col-12">
+              <label class="form-label" for="email">이메일 (아이디)<span class="text-danger ps-1 h6">*</span></label>
+              <div class="input-group">
+                <input class="form-control" type="email" id="email" placeholder="이메일을 입력해주세요." onkeyup="removeSpace(this);" {% if legacy_user_data and legacy_user_data.EMAIL_ADDRESS %}value="{{ legacy_user_data.EMAIL_ADDRESS }}"{% endif %}>
+                <button class="btn btn-primary" type="button" onclick="check_email()">중복확인</button>
+              </div>
+            </div>
+          {% endif %}
+          <div class="col-sm-6 col-12">
+            <label class="form-label" for="pw">비밀번호<span class="text-danger ps-1 h6">*</span></label>
+            <div class="password-toggle">
+              <input class="form-control" type="password" id="pw" placeholder="영문, 숫자, 특수문자를 포함한 8~20자">
+              <label class="password-toggle-btn" aria-label="Show/hide password">
+                <input class="password-toggle-check" type="checkbox" tabindex="-1">
+                <span class="password-toggle-indicator"></span>
+              </label>
+            </div>
+            <!-- <div class="invalid-feedback">비밀번호를 확인 해주세요.</div> -->
+          </div>
+          <div class="col-sm-6 col-12">
+            <label class="form-label" for="pw2">비밀번호 확인<span class="text-danger ps-1 h6">*</span></label>
+            <div class="password-toggle">
+              <input class="form-control" type="password" id="pw2" placeholder="비밀번호를 한번 더 입력해주세요.">
+              <label class="password-toggle-btn" aria-label="Show/hide password">
+                <input class="password-toggle-check" type="checkbox" tabindex="-1">
+                <span class="password-toggle-indicator"></span>
+              </label>
+            </div>
+            <!-- <div class="invalid-feedback">비밀번호가 일치하지 않습니다.</div> -->
+          </div>
+          {% if not legacy_user_data or not legacy_user_data.MOBILE_NO or not legacy_user_data.USER_NAME %}
+            <div class="col-12 py-2" id="cert_frame">
+              <button class="btn btn-primary col-12 mt-2" type="button" onclick="cert()" id="req-cert"><i class="ci-user me-2 ms-n1"></i>본인 인증<span class="text-white ps-1 h6">*</span></button>
+            </div>
+          {% endif %}
+          <div class="col-sm-6 col-12">
+            <label class="form-label" for="name">이름<span class="text-danger ps-1 h6">*</span></label>
+            <input class="form-control" type="text" id="name" disabled onkeyup="on_change(this)" value="{% if legacy_user_data and legacy_user_data.USER_NAME %}{{ legacy_user_data.USER_NAME }}{% endif %}">
+            <!-- <div class="invalid-feedback">본인 인증을 해주세요.</div> -->
+          </div>
+          <div class="col-sm-6 col-12">
+            <label class="form-label" for="mobile">전화번호<span class="text-danger ps-1 h6">*</span></label>
+            <input class="form-control" type="text" id="mobile" disabled onkeyup="on_change(this)" value="{% if legacy_user_data and legacy_user_data.MOBILE_NO %}{{ legacy_user_data.MOBILE_NO }}{% endif %}">
+            <!-- <div class="invalid-feedback">본인 인증을 해주세요.</div> -->
+          </div>
+{#						<div class="col-12">#}
+{#							<label class="form-label" for="zipcode">주소</label>#}
+{#							<div class="input-group">#}
+{#								<input class="form-control" id="zipcode" type="text" disabled placeholder="우편번호를 검색 해주세요">#}
+{#								<button class="btn btn-primary" type="button" onclick="search_address()">우편번호</button>#}
+{#							</div>#}
+{#						</div>#}
+{#						<div class="col-12">#}
+{#							<input class="form-control" type="text" id="address" disabled placeholder="">#}
+{#							<!-- <div class="invalid-feedback">우편번호를 검색 해주세요.</div> -->#}
+{#						</div>#}
+{#						<div class="col-12">#}
+{#							<input class="form-control" type="text" id="address_detail" placeholder="상세 주소를 입력해주세요.">#}
+{#							<!-- <div class="invalid-feedback">상세 주소를 입력해주세요.</div> -->#}
+{#						</div>#}
+          <div class="col-12">
+            <label class="form-label" for="recommander">추천인 아이디</label>
+            <input class="form-control" type="email" id="recommander" placeholder="추천인 아이디를 입력해주세요.">
+          </div>
+          <hr class="my-3">
+          <div class="col-sm-12 mt-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkAll" onchange="allCheck(this)">
+              <label class="form-check-label h5" for="chkAll">전체 동의</label>
+            </div>
+            <div class="form-check ms-2">
+              <input class="form-check-input" type="checkbox" id="chkTerms" onchange="chkChange()">
+              <label class="form-check-label" for="chkTerms">이용약관 동의 (필수) <a class="text-muted" href="javascript:;" onclick="policyMore('/{{ store.code }}/terms');">[자세히 보기]</a></label>
+              <!-- <div class="invalid-feedback">필수 항목 입니다.</div> -->
+            </div>
+            <div class="form-check ms-2">
+              <input class="form-check-input" type="checkbox" id="chkPrivacy" onchange="chkChange()">
+              <label class="form-check-label" for="chkPrivacy">개인정보처리방침 동의 (필수) <a class="text-muted" href="javascript:;" onclick="policyMore('/{{ store.code }}/terms?tab=privacy');">[자세히 보기]</a></label>
+              <!-- <div class="invalid-feedback">필수 항목 입니다.</div> -->
+            </div>
+            <div class="form-check ms-2">
+              <input class="form-check-input" type="checkbox" id="chkMarketing" onchange="chkChange()">
+              <label class="form-check-label" for="chkMarketing">마케팅 활용 동의 (선택) <a class="text-muted" href="javascript:;" data-bs-toggle="modal" data-bs-target="#modal_marketing">[자세히 보기]</a></label>
+            </div>
+          </div>
+          <div class="col-12 text-end">
+            <button class="btn btn-primary col-12 mt-3" type="submit" onclick="signup()"><i class="ci-add-user me-2 ms-n1"></i>가입하기</button>
+          </div>
+        </div>
+        <input type="hidden" id="birth" value=""/>
+        <input type="hidden" id="gender" value=""/>
+      </form>
+		</div>
+	</div>
+	<div id="modal_marketing" class="modal fade" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div class="modal-title">마케팅 활용 동의</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body fs-sm word-keep-all">
+					할인쿠폰 및 혜택, 이벤트, 신상품 소식 등 쇼핑몰에서 제공하는 유익한 쇼핑정보를 SMS나 이메일로 받아보실 수 있습니다.<br>
+					단, 주문/거래 정보 및 주요 정책과 관련된 내용은 수신동의 여부와 관계없이 발송됩니다.<br>
+					선택 약관에 동의하지 않으셔도 회원가입은 가능하며, 회원가입 후 회원정보수정 페이지에서 언제든지 수신여부를 변경하실 수 있습니다.
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<form name="niceid_form" target="cert_form" id="niceid_form" action="https://nice.checkplus.co.kr/CheckPlusSafeModel/service.cb">
+		<input type="hidden" id="m" name="m" value="service"/>
+		<input type="hidden" id="token_version_id" name="token_version_id" value=""/>
+		<input type="hidden" id="enc_data" name="enc_data" value=""/>
+		<input type="hidden" id="integrity_value" name="integrity_value" value=""/>
+	</form>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+	<script>
+    let confirm_email = "";
+    let confirm_name = "{% if legacy_user_data and legacy_user_data.USER_NAME %}{{ legacy_user_data.USER_NAME }}{% endif %}";
+    let confirm_mobile = "{% if legacy_user_data and legacy_user_data.MOBILE_NO %}{{ legacy_user_data.MOBILE_NO }}{% endif %}";
+    let confirm_zipcode = "";
+    let confirm_address = "";
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+      get: (searchParams, prop) => searchParams.get(prop),
+    });
+
+    function search_address() {
+      new daum.Postcode({
+        oncomplete: function (data) {
+          document.getElementById("zipcode").value = data.zonecode;
+          document.getElementById("address").value = data.address;
+          // document.getElementById("zipcode").classList.remove("is-invalid");
+          // document.getElementById("address").classList.remove("is-invalid");
+          // document.getElementById("zipcode").classList.add("is-valid");
+          // document.getElementById("address").classList.add("is-valid");
+          confirm_zipcode = data.zonecode;
+          confirm_address = data.address;
+        }
+      }).open();
+    }
+
+    function on_change(obj) {
+      obj.classList.remove("is-invalid");
+      obj.classList.remove("is-valid");
+    }
+
+    function check_email(domain) {
+      const email = document.getElementById("email").value;
+      if (email) {
+        let target = domain ? email + '@' + domain : email
+        axios.get("/api/customer/exist", {
+          params: {
+            email: target
+          }
+        }, {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          if (response.data.exist) {
+            swal.fire({
+              position: 'center',
+              icon: 'warning',
+              title: '이미 사용중인 아이디 입니다.',
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          } else {
+            confirm_email = target;
+            swal.fire({
+              position: 'center',
+              icon: 'success',
+              title: '사용 가능한 아이디 입니다.',
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          }
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            swal.fire({
+              position: 'center',
+              icon: 'warning',
+              title: '이메일을 확인해주세요.',
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          }
+        });
+      } else {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '이메일을 입력해주세요.',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      }
+    }
+
+    function cert() {
+      axios.post("{{ api_host }}/auth/cert-niceid", {
+        return_url: "{{ base_url }}{{ request.path_params.store_code }}/auth/cert-result"
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        let token_version_id = response.data.token_version_id;
+        let enc_data = response.data.enc_data;
+        let integrity_value = response.data.integrity_value;
+        document.querySelector("#token_version_id").value = token_version_id;
+        document.querySelector("#enc_data").value = enc_data;
+        document.querySelector("#integrity_value").value = integrity_value;
+
+        window.addEventListener('message', receiveCertValue, false);
+        setTimeout(() => {
+          if (getPlatformType() === 'PC') {
+            window.open('', 'cert_form', 'width=500, height=550, top=100, left=100, fullscreen=no, menubar=no, status=no, toolbar=no, titlebar=yes, location=no, scrollbar=no');
+          }
+          document.getElementById('niceid_form').submit();
+        });
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function receiveCertValue(event) {
+      console.log(event.data);
+      axios.post("{{ api_host }}/auth/cert-niceid-verify", {
+        token_version_id: event.data.token_version_id,
+        enc_data: event.data.enc_data,
+        integrity_value: event.data.integrity_value,
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        const inputDateStr = response.data.birth;
+        const year = inputDateStr.slice(0, 4);
+        const month = inputDateStr.slice(4, 6);
+        const day = inputDateStr.slice(6, 8);
+        const formattedDateStr = `${year}-${month}-${day}`;
+
+        document.querySelector("#name").value = response.data.name;
+        document.querySelector("#mobile").value = response.data.mobile;
+        document.querySelector("#birth").value = formattedDateStr;
+        document.querySelector("#gender").value = response.data.gender;
+        // document.querySelector("#cert_frame").classList.add("d-none");
+        // document.querySelector("#name").classList.remove("is-invalid");
+        // document.querySelector("#mobile").classList.remove("is-invalid");
+        // document.querySelector("#name").classList.add("is-valid");
+        // document.querySelector("#mobile").classList.add("is-valid");
+        confirm_name = response.data.name;
+        confirm_mobile = response.data.mobile;
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function allCheck(obj) {
+      if (obj.checked) {
+        document.querySelector("#chkTerms").checked = true;
+        document.querySelector("#chkPrivacy").checked = true;
+        document.querySelector("#chkMarketing").checked = true;
+      } else {
+        document.querySelector("#chkTerms").checked = false;
+        document.querySelector("#chkPrivacy").checked = false;
+        document.querySelector("#chkMarketing").checked = false;
+      }
+    }
+
+    function chkChange() {
+      document.querySelector("#chkAll").checked = !!(document.querySelector("#chkTerms").checked && document.querySelector("#chkPrivacy").checked && document.querySelector("#chkMarketing").checked);
+    }
+
+    function validation() {
+      if (!document.getElementById("email").value) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '이메일을 입력 해주세요.',
+          showConfirmButton: false,
+          timer: 1500,
+        })
+        return false;
+      }
+      let email = document.getElementById("email").value;
+      let domain = '{% if store.able_target_use == 'E' %}{{ store.verify_code }}{% endif %}';
+      let target_email = domain ? email + '@' + domain : email
+
+      if (target_email && confirm_email !== target_email) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '이메일 중복확인을 해주세요.',
+          showConfirmButton: false,
+          timer: 1500,
+        })
+        return false;
+      }
+      if (!validatePassword(document.getElementById("pw").value)) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          confirmButtonText: "확인",
+          title: '비밀번호 형식을 확인 해주세요.\n영문+숫자+특수문자 조합 8~20자\n[사용가능 특수문자  @#$!%*?& ]',
+          timer: 1500,
+        });
+        return false;
+      }
+      if (document.getElementById("pw").value !== document.getElementById("pw2").value) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '비밀번호가 일치하지 않습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        return false;
+      }
+      // if (!confirm_name || document.querySelector("#name").value !== confirm_name) {
+      //   swal.fire({
+      //     position: 'center',
+      //     icon: 'warning',
+      //     title: '본인 인증을 해주세요.',
+      //     showConfirmButton: false,
+      //     timer: 1500,
+      //   });
+      //   return false;
+      // }
+      // if (!confirm_mobile || document.querySelector("#mobile").value !== confirm_mobile) {
+      //   swal.fire({
+      //     position: 'center',
+      //     icon: 'warning',
+      //     title: '본인 인증을 해주세요.',
+      //     showConfirmButton: false,
+      //     timer: 1500,
+      //   });
+      //   return false;
+      // }
+      if (!document.querySelector("#chkTerms").checked) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '약관에 동의 해주세요.',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        return false;
+      }
+      if (!document.querySelector("#chkPrivacy").checked) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '약관에 동의 해주세요.',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        return false;
+      }
+      return true;
+    }
+
+    function signup() {
+      if (validation()) {
+        let email = document.getElementById("email").value;
+        let domain = '{% if store.able_target_use == 'E' %}{{ store.verify_code }}{% endif %}';
+        let target_email = domain ? email + '@' + domain : email
+
+        let recommend = ""
+        if (document.getElementById("recommander").value) {
+          recommend = document.getElementById("recommander").value
+        } else if (params.recommend) {
+          recommend = params.recommend
+        }
+        axios.post("/api/customer?store_code={{ request.path_params.store_code }}", {
+          "email": target_email,
+          "password": document.querySelector("#pw").value,
+          "name": document.querySelector("#name") ? document.querySelector("#name").value : null,
+          "mailling": document.querySelector("#chkMarketing").checked ? "Y" : "N",
+          "sms": document.querySelector("#chkMarketing").checked ? "Y" : "N",
+          "mobile": document.querySelector("#mobile") ? document.querySelector("#mobile").value : null,
+          "zipcode": document.querySelector("#zipcode") ? document.querySelector("#zipcode").value : null,
+          "address": document.querySelector("#address") ? document.querySelector("#address").value : null,
+          "address_detail": document.querySelector("#address_detail") ? document.querySelector("#address_detail").value : null,
+          "birthday": document.querySelector("#birth").value ? document.querySelector("#birth").value : null,
+          "sex": document.querySelector("#gender").value ? document.querySelector("#gender").value : null,
+          "recommend": recommend,
+          "referer": window.location.href,
+          "referer_domain": window.location.host,
+          "join_platform": getPlatformType(),
+          {% if legacy_user_data %}
+            "legacy": "{{ request.query_params.data }}",
+          {% endif %}
+        }, {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          swal.fire({
+            position: 'center',
+            icon: 'success',
+            title: '가입 되었습니다.\n이메일 인증을 완료해주세요.',
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            window.location.href = "/{{ request.path_params.store_code }}/auth/login";
+          })
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+      }
+    }
+
+    function policyMore(url) {
+      window.open(url, "_blank", "width=500, height=600, left=200, top=10");
+    }
+
+    function removeSpace(obj) {
+      obj.value = obj.value.replace(/\s+/g, '');
+      return false;
+    }
+	</script>
+{% endblock %}

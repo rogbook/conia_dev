@@ -1,0 +1,38 @@
+{% extends 'base-simple.jinja2' %}
+{% block content %}
+	<div class="container py-5 mb-lg-3">
+		<div class="row justify-content-center pt-lg-4 text-center">
+			<div class="col-lg-5 col-md-7 col-sm-9">
+				<img class="d-block mx-auto mb-5" src="{{ url_for('static', path='img/pages/404.png') }}" width="340" alt="404 Error">
+				<h1 class="h3">{{ msg }}</h1>
+				<p class="fs-md mb-4 d-none">
+					<u>{{ code }}</u>
+				</p>
+				<button type="button" class="btn btn-outline-info" onclick="goHome()">홈으로</button>
+				{% if code != 'AUTH0012' %}
+					<button type="button" class="btn btn-outline-info" onclick="goback()">뒤로가기</button>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script>
+    function goback() {
+      window.history.back()
+    }
+
+    function goHome() {
+      let store_code = getCookie('store_code');
+      if (!store_code) {
+        store_code = sessionStorage.getItem('store_code');
+			}
+      if (store_code && store_code !== 'None') {
+        window.location.href = "/" + store_code;
+      } else {
+        window.location.href = "/";
+      }
+    }
+	</script>
+{% endblock %}

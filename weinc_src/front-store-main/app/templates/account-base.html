@@ -1,0 +1,145 @@
+{% extends 'base.jinja2' %}
+{% block title %}
+	My 메뉴
+{% endblock %}
+{% block theme %}
+{% endblock %}
+{% block content %}
+	<!-- Page Title-->
+	<!-- <div class="bg-secondary pt-3 pb-5 d-lg-block d-none">
+		<div class="container px-lg-3 px-4 pt-1">
+			<nav aria-label="breadcrumb">
+				<ol class="breadcrumb">
+					<li class="breadcrumb-item"><a class="text-nowrap" href="/{{ request.path_params.store_code }}"><i class="ci-home"></i></a></li>
+					<li class="breadcrumb-item text-nowrap"><a href="#">마이 메뉴</a></li>
+					<li class="breadcrumb-item text-nowrap" aria-current="page">{% block menu_title_breadcrumb %}{% endblock %}</li>
+				</ol>
+			</nav>
+		</div>
+	</div> -->
+	<div class="w-100 mb-0 px-4 py-2 border-bottom fw-bold fs-sm">
+		<nav aria-label="breadcrumb">
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item fs-xs"><a href="/{{ request.path_params.store_code }}"><i class="ci-home"></i></a></li>
+				<li class="breadcrumb-item fs-xs text-muted">마이 메뉴</li>
+				<li class="breadcrumb-item fs-xs text-dark" aria-current="page">{% block menu_title %}{% endblock %}</li>
+			</ol>
+		</nav>
+	</div>
+
+	<div class="container mt-4 mb-2 pb-5">
+		<div class="row">
+			<!-- Sidebar-->
+			<!-- <aside class="col-lg-3 mt-n5 pt-3 pt-lg-0 d-lg-block d-none">
+				<div class="d-lg-block d-none bg-white rounded-3 shadow-lg pt-1 mb-5 mb-lg-0 overflow-hidden">
+					<div class="d-md-flex justify-content-between align-items-center text-center text-md-start p-4">
+						<div class="d-md-flex align-items-center">
+							<div class="ps-md-3">
+{#								<h3 class="fs-base mb-0">{{ user.name }}</h3>#}
+								<span class="text-accent fs-sm">{{ user.email }}</span>
+							</div>
+						</div>
+					</div>
+					<div class="d-lg-block d-none" id="account-menu">
+						<div class="bg-dark px-4 py-3">
+							<h3 class="fs-sm mb-0 text-white">마이 메뉴</h3>
+						</div>
+						<ul class="list-unstyled mb-0">
+							{% if "MENU_ORDER_LIST" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_order %}{% endblock %}" href="/{{ request.path_params.store_code }}/order/history">
+										<i class="fa-solid fa-receipt nav-link-icon"></i>주문 내역
+									</a>
+								</li>
+							{% endif %}
+							{% if "MENU_MY_TICKET" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_ticket %}{% endblock %}" href="/{{ request.path_params.store_code }}/order/ticket">
+										<i class="fa-solid fa-ticket nav-link-icon"></i>마이 티켓
+									</a>
+								</li>
+							{% endif %}
+							{% if "MENU_E_COUPON" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_ecoupon %}{% endblock %}" href="/{{ request.path_params.store_code }}/ecoupon">
+										<i class="fa-solid fa-barcode nav-link-icon"></i>마이 브랜드티켓
+									</a>
+								</li>
+							{% endif %}
+							{% if "MENU_MY_COUPON" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_coupon %}{% endblock %}" href="/{{ request.path_params.store_code }}/member/coupon">
+										<i class="fa-solid fa-percent nav-link-icon"></i>마이 쿠폰
+									</a>
+								</li>
+							{% endif %}
+							{% if "MENU_FAVORITE" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_wish %}{% endblock %}" href="/{{ request.path_params.store_code }}/order/wishlist">
+										<i class="fa-solid fa-heart nav-link-icon"></i>관심 상품
+									</a>
+								</li>
+							{% endif %}
+						</ul>
+						<ul class="list-unstyled mb-0">
+							{% if "MENU_MY_INFO" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_profile %}{% endblock %}" href="/{{ request.path_params.store_code }}/member/profile">
+										<i class="fa-solid fa-user nav-link-icon"></i>개인정보 수정
+									</a>
+								</li>
+							{% endif %}
+							{% if "MENU_ADDRESS" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_address %}{% endblock %}" href="/{{ request.path_params.store_code }}/member/address">
+										<i class="fa-solid fa-truck-fast nav-link-icon"></i>배송지 관리
+									</a>
+								</li>
+							{% endif %}
+						</ul>
+						<ul class="list-unstyled mb-0">
+							{% if "MENU_NOTICE" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_notice %}{% endblock %}" href="/{{ request.path_params.store_code }}/board/notice">
+										<i class="fa-solid fa-bullhorn nav-link-icon"></i>공지사항
+									</a>
+								</li>
+							{% endif %}
+							{% if "MENU_FAQ" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_faq %}{% endblock %}" href="/{{ request.path_params.store_code }}/board/faq">
+										<i class="fa-solid fa-headset nav-link-icon"></i>자주하는 질문
+									</a>
+								</li>
+							{% endif %}
+							{% if "MENU_QNA" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_qna %}{% endblock %}" href="/{{ request.path_params.store_code }}/board/qna">
+										<i class="fa-solid fa-circle-question nav-link-icon"></i>문의 내역
+									</a>
+								</li>
+							{% endif %}
+							{% if "MENU_REVIEW" not in exclude_menu %}
+								<li class="border-bottom mb-0">
+									<a class="nav-link-style d-flex align-items-center px-4 py-3 {% block active_review %}{% endblock %}" href="/{{ request.path_params.store_code }}/board/review">
+										<i class="fa-solid fa-comment-dots nav-link-icon"></i>상품 리뷰
+									</a>
+								</li>
+							{% endif %}
+							<li class="mb-0">
+								<a class="d-flex align-items-center px-4 py-3 bg-primary text-white" href="/{{ request.path_params.store_code }}/auth/logout">
+									<i class="fa-solid fa-power-off nav-link-icon" style="color:#fff !important;"></i>로그아웃
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</aside> -->
+			<!-- Content -->
+			<section class="col-12">
+				{% block account_content %}
+				{% endblock %}
+			</section>
+		</div>
+	</div>
+{% endblock %}
