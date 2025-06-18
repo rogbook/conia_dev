@@ -1,0 +1,33 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  # 모든 job에 사용할 변수 설정
+  APP_NAME: v3api
+  DOCKER_IMAGE: conialab/$APP_NAME
+
+before_script:
+  # 모든 job이 실행되기 전에 실행할 스크립트
+  - echo "Starting CI/CD pipeline for $APP_NAME"
+
+build:
+  stage: build
+  script:
+    - echo "Building the application..."
+    - docker build -t $DOCKER_IMAGE:$CI_COMMIT_TAG .
+  only:
+    - tags
+  tags:
+    - dev-runner
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying the application..."
+    - docker push $DOCKER_IMAGE:$CI_COMMIT_TAG
+    - echo "Deploy to hub"
+  only:
+    - tags
+  tags:
+    - dev-runner

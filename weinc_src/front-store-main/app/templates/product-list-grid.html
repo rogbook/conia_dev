@@ -1,0 +1,322 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+	<!-- Page Title-->
+	<!-- <div class="bg-secondary">
+		<div class="container px-lg-3 px-4 py-3 d-lg-block d-none">
+			<div aria-label="breadcrumb" class="">
+				<ol class="breadcrumb px-2">
+					<li class="breadcrumb-item"><a class="text-nowrap" href="/{{ request.path_params.store_code }}"><i class="ci-home"></i></a></li>
+					{% if current_category %}
+						{% if current_category.depth1_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth1_id %}{{ current_category.depth1_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth1_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth2_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth2_id %}{{ current_category.depth2_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth2_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth3_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth3_id %}{{ current_category.depth3_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth3_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth4_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{{ current_category.id }}">{{ current_category.depth4_name }}</a></li>
+						{% endif %}
+					{% else %}
+						<li class="breadcrumb-item text-nowrap" aria-current="page">{{ page_title }}</li>
+					{% endif %}
+				</ol>
+			</div>
+		</div>
+	</div> -->
+
+	<div class="container position-relative">
+		{% if bottom_themes %}
+			<section class="row mx-0 my-3">
+				<div class="col-12 px-0 position-relative">
+					<div class="py-2 overflow-scroll scroll-d-none x-slider">
+						<ul class="btn-grp nav nav-pills gap-2 flex-nowrap">
+							{% for row in bottom_themes %}
+								<li class="nav-item flex-shrink-0 mx-0"><a href="/{{ request.path_params.store_code }}/theme/{{ row.id }}" class="nav-link rounded-pill border fs-sm {% if theme and theme.id == row.id %} bg-dark text-white shadow-none active {% else %} bg-white {% endif %}" style="padding:0.3rem 0.85rem;">{{ row.name }}</a></li>
+							{% endfor %}
+						</ul>
+					</div>
+					<div class="to_left d-none"></div>
+					<div class="to_right d-none"></div>
+				</div>
+			</section>
+		{% endif %}
+		{% if sibling_themes %}
+			<section class="row mx-0 my-3">
+				<div class="col-12 px-0 position-relative">
+					<div class="py-2 overflow-scroll scroll-d-none x-slider">
+						<ul class="btn-grp nav nav-pills gap-2 flex-nowrap">
+							{% for row in sibling_themes %}
+								<li class="nav-item flex-shrink-0 mx-0"><a href="/{{ request.path_params.store_code }}/theme/{{ row.id }}" class="nav-link rounded-pill border fs-sm {% if theme and theme.id == row.id %} bg-dark text-white shadow-none active {% else %} bg-white {% endif %}" style="padding:0.3rem 0.85rem;">{{ row.name }}</a></li>
+							{% endfor %}
+						</ul>
+					</div>
+					<div class="to_left d-none"></div>
+					<div class="to_right d-none"></div>
+				</div>
+			</section>
+		{% endif %}
+	</div>
+
+	<div>
+		{% if layout_data %}
+			{% for layout in layout_data %}
+				{% if layout.type == 'slide-lg' %}
+					{% include 'component-slide-lg.html' %}
+				{% elif layout.type == 'slide-md' %}
+					{% include 'component-slide-md.html' %}
+				{% elif layout.type == 'banner' %}
+					{% include 'component-banner.html' %}
+				{% elif layout.type == 'banner-column-4' %}
+					{% include 'component-banner-column-4.html' %}
+				{% elif layout.type == 'banner-column-2' %}
+					{% include 'component-banner-column-2.html' %}
+				{% elif layout.type == 'column-4' %}
+					{% include 'component-column-4.html' %}
+				{% elif layout.type == 'column-2' %}
+					{% include 'component-column-2.html' %}
+				{% elif layout.type == 'button-grp' %}
+					{% include 'component-button-grp.html' %}
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+	</div>
+
+	<div class="container pb-5">
+		<!-- Content  -->
+		<section class="mt-2">
+			<div class="d-flex justify-content-end">
+				<div class="d-flex flex-shrink-0 align-items-center px-0 ps-3 mb-2" style="width:130px;">
+					<label class="text-info fs-xs pt-1" for="sorter"><i class="ci-arrows-vertical"></i></label>
+					<select class="form-select form-select-sm form-select-custom border-0 ps-2 pe-1 bg-white text-dark" id="sorter" onchange="sorter(this)">
+						<option value="newest" {% if request.query_params.sorter == 'newest' %}selected{% endif %}>신상품순</option>
+						<option value="name" {% if request.query_params.sorter == 'name' %}selected{% endif %}>상품명</option>
+						<option value="minPrice" {% if request.query_params.sorter == 'minPrice' %}selected{% endif %}>가격낮은순</option>
+						<option value="maxPrice" {% if request.query_params.sorter == 'maxPrice' %}selected{% endif %}>가격높은순</option>
+					</select>
+				</div>
+			</div>
+			<!-- Products grid-->
+			<div class="row mx-n1">
+				{% if products %}
+					{% for item in products %}
+						<!-- Product-->
+						<div class="col-6 px-1 mb-grid-gutter">
+							<div class="card product-card h-100 border-0 overflow-hidden">
+								<a href="/{{ request.path_params.store_code }}/product/{{ item.id }}" class="d-block h-100 text-dark">
+									<div class="position-relative">
+										<img src="{% if item.photos %}{{ item.photos[0].uri }}{% else %}{{ url_for('static', path='img/noimage_list.gif') }}" style="width: 230px; {% endif %}" alt="Product" class="img-1by1 rounded-3">
+										{% if item.is_sold_out or item.status == 'S' %}
+											<div class="img-disable">
+												<span class="fw-bold fs-3">품절</span>
+											</div>
+										{% elif item.status == 'P' %}
+											<div class="img-disable">
+												<span class="fw-bold fs-3">판매 중지</span>
+											</div>
+										{% elif item.status == 'PT' %}
+											<div class="img-disable">
+												<span class="fw-bold fs-3">판매 준비중</span>
+											</div>
+										{% endif %}
+									</div>
+									<div class="item-card-body">
+										<div class="item-name-wrap">
+											{% if item.brands %}
+												<div class="item-shop-name">{{ item.brands[0].name }}</div>{% endif %}
+											<div class="item-title ellipsis-2">{{ item.name }}</div>
+										</div>
+										{% if user or store.type == "O" %}
+											{% for option in item.options %}
+												{% if option.default_yn == 'Y' %}
+													{% if option.origin_price %}
+														<div class="item-price-wrap">
+															{% if option.origin_price > option.selling_price %}
+																<span class="item-discount-per">
+																	{{ ((option.origin_price - option.selling_price)/option.origin_price * 100)|custom_round }}%
+																</span>
+															{% endif %}
+															<div class="item-selling-price">{{ "{:,.0f}".format(option.selling_price) }}원</div>
+															{% if option.origin_price > option.selling_price %}
+																<div class="item-discount-wrap">
+																	<del class="item-discount-price">{{ "{:,.0f}".format(option.origin_price) }}원</del>
+																</div>
+															{% endif %}
+														</div>
+													{% endif %}
+													{% break %}
+												{% endif %}
+											{% endfor %}
+										{% endif %}
+										{% if item.subtitle %}
+											<div class="item-subtitle ellipsis-2">{{ item.subtitle }}</div>
+										{% endif %}
+										<!--뱃지 영역-->
+										{% if item.badges and item.badges|length > 0 %}
+											<div class="item-badge-wrap">
+												{% for badge in item.badges %}
+													<span class="badge badge-shadow" style="background-color: {{ badge.color }};">{{ badge.name }}</span>
+												{% endfor %}
+											</div>
+										{% endif %}																				
+										{% if item.view_end_time == 'Y' and (item.sale_end_date and (item.sale_end_date > current_datetime)) %}
+											<!-- 판매 시간 -->
+											{% if item.sale_start_date and (item.sale_start_date > current_datetime) %}
+												<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ item.sale_start_date }}">
+												<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 시작까지</div>
+												<div class="countdown-days m-0 d-flex align-items-baseline">
+													<span class="countdown-value">0</span>
+													<span>일&nbsp;</span>
+												</div>
+											{% elif (item.sale_start_time and (item.sale_start_time > current_time)) or (item.sale_start_time and item.sale_end_time and (item.sale_end_time < current_time)) %}
+												<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ item.sale_start_time|add_date_str }}">
+												<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 시작까지</div>
+											{% elif item.sale_end_time and (item.sale_end_time > current_time) %}
+												<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ item.sale_end_time|add_date_str }}">
+												<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 종료까지</div>
+											{% else %}
+												<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ item.sale_end_date }}">
+												<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 종료까지</div>
+												<div class="countdown-days m-0 d-flex align-items-baseline">
+													<span class="countdown-value">0</span>
+													<span>일&nbsp;</span>
+												</div>
+											{% endif %}
+										<div class="countdown-hours m-0 d-flex align-items-center">
+											<span class="countdown-value">0</span>
+											<span>:</span>
+										</div>
+										<div class="countdown-minutes m-0 d-flex align-items-center">
+											<span class="countdown-value">0</span>
+											<span>:</span>
+										</div>
+										<div class="countdown-seconds m-0 d-flex align-items-center">
+											<span class="countdown-value">0</span>
+										</div>
+										</div>
+										{% endif %}
+										{% if item.view_inventory == 'Y' %}
+											<div class="mt-1 fs-xs lineH-10 text-danger">남은 수량 {% if item.inven_cnt > 0 %}{{ item.inven_cnt }}{% else %}0{% endif %}개</div>
+										{% endif %}
+										</div>
+								</a>
+							</div>
+						</div>
+					{% endfor %}
+				{% else %}
+					<div class="card py-5 text-center shadow">
+						<i class="ci-delivery mb-2 h1"></i>
+						<span>상품 준비중입니다. 조금만 기다려주세요!</span>
+					</div>
+				{% endif %}
+			</div>
+			{% if paginate and paginate.pages > 1 %}
+				<!-- Pagination-->
+				<nav class="d-flex justify-content-center pt-3" aria-label="Page navigation">
+					<ul class="pagination me-2">
+						{% if paginate.has_previous %}
+							<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page(1)"><i class="fa-solid fa-angles-left"></i></a></li>
+							<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.previous_page }})"><i class="fa-solid fa-angle-left"></i></a></li>
+						{% endif %}
+					</ul>
+					<ul class="pagination">
+						<li class="page-item d-sm-none">
+							<span class="page-link page-link-static">{{ paginate.current_page }} / {{ paginate.pages }}</span>
+						</li>
+						{% for i in range(1, paginate.pages + 1) %}
+							{% if i > paginate.current_page - 4 and i <= paginate.current_page + 4 %}
+								{% if i == paginate.current_page %}
+									<li class="page-item active d-none d-sm-block" aria-current="page">
+										<span class="page-link">{{ paginate.current_page }}<span class="visually-hidden">(current)</span></span>
+									</li>
+								{% else %}
+									<li class="page-item d-none d-sm-block"><a class="page-link" href="javascript:void(0);" onclick="page({{ i }})">{{ i }}</a></li>
+								{% endif %}
+							{% endif %}
+						{% endfor %}
+					</ul>
+					<ul class="pagination ms-1">
+						{% if paginate.has_next %}
+							<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.next_page }})" aria-label="Next"><i class="fa-solid fa-angle-right"></i></a></li>
+							<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.pages }})" aria-label="Next"><i class="fa-solid fa-angles-right"></i></a></li>
+						{% endif %}
+					</ul>
+				</nav>
+			{% endif %}
+		</section>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    function wish(obj, productId) {
+			event.preventDefault();
+			
+      let cl = obj.querySelector("i").classList;
+      let action = '';
+
+      for (const el of cl) {
+        if (el === "ci-heart") {
+          action = 'add';
+        } else {
+          action = 'del';
+        }
+      }
+
+      if (action === 'add') {
+        axios.post("/api/wish/" + productId + "?store_code={{ request.path_params.store_code }}", {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          obj.querySelector("i").classList.remove('ci-heart');
+          obj.querySelector("i").classList.add('ci-heart-filled');
+          obj.querySelector("i").classList.add('text-primary');
+          Swal.fire({
+            icon: 'success',
+            title: '관심상품이 등록되었습니다.',
+            showConfirmButton: false,
+            timer: 1500
+          })
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+      } else {
+        axios.delete("/api/wish/" + productId + "?store_code={{ request.path_params.store_code }}", {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          obj.querySelector("i").classList.remove('ci-heart-filled');
+          obj.querySelector("i").classList.remove('text-primary');
+          obj.querySelector("i").classList.add('ci-heart');
+          Swal.fire({
+            icon: 'success',
+            title: '관심 상품이 삭제 되었습니다.',
+            showConfirmButton: false,
+            timer: 1500
+          })
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+      }
+    }
+
+    function search(q) {
+      addQueryParam('q', q);
+    }
+
+    function sorter(obj) {
+      addQueryParam('sorter', obj.value);
+    }
+
+    function page(page) {
+      addQueryParam('page', page);
+    }
+	</script>
+{% endblock %}

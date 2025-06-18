@@ -1,0 +1,11 @@
+{% if item.view_type == 'img' %}
+<li class="flex-shrink-0 my-0">
+  <a href="{% if item.full_link %}{{ item.full_link }}{% else %}/{{ request.path_params.store_code }}{{ item.link }}{% endif %}" class="btn img-button btn-sm p-0 text-center conia-el-link {% if theme and item.name == theme.name %}active{% endif %}">
+    <img src="{{ item.view_src }}" alt="button image">
+  </a>
+</li>
+{% else %}
+<li class="flex-shrink-0 my-0 bg-white">
+  <a href="{% if item.full_link %}{{ item.full_link }}{% else %}/{{ request.path_params.store_code }}{{ item.link }}{% endif %}" class="btn btn-sm btn-outline-dark overflow-hidden conia-el-link {% if theme and item.name == theme.name %}active{% endif %}">{{ item.name }}</a>
+</li>
+{% endif %}

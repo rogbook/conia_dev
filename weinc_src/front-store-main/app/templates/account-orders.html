@@ -1,0 +1,214 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}주문 내역{% endblock %}
+{% block menu_title_breadcrumb %}주문 내역{% endblock %}
+{% block active_order %}active{% endblock %}
+{% block account_content %}
+	<!-- Orders list-->
+	{% if legacy_data %}
+		<div class="mb-3 mb-2 text-end"><button onclick="go_legacy()" class="btn btn-sm btn-outline-primary">이전 버전 주문내역</button></div>
+	{% endif %}
+	<ul class="nav nav-tabs nav-fill">
+		<li class="nav-item"><a href="history" class="nav-link {% if request.query_params.get('prd_type') == None or request.query_params.prd_type == '' %}active{% endif %}">전체</a></li>
+		<li class="nav-item"><a href="?prd_type=UP-OF" class="nav-link {% if request.query_params.prd_type and request.query_params.prd_type == 'UP-OF' %}active{% endif %}">오늘티켓</a></li>
+		<li class="nav-item"><a href="?prd_type=UP-EC" class="nav-link {% if request.query_params.prd_type and request.query_params.prd_type == 'UP-EC' %}active{% endif %}">브랜드티켓</a></li>
+		<li class="nav-item"><a href="?prd_type=DP" class="nav-link {% if request.query_params.prd_type and request.query_params.prd_type == 'DP' %}active{% endif %}">배송</a></li>
+	</ul>
+	<div class="mb-4">
+		{% if order_products %}
+			{% for prd in order_products %}
+				<div class="card mb-3">
+					<div class="card-body">
+						{% if prd.status == 'PD' %}
+							<span class="badge bg-info me-2 mb-2 fs-sm">결제완료</span>
+						{% elif prd.status == 'PW' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">입금대기</span>
+						{% elif prd.status == 'CD' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">결제취소</span>
+						{% elif prd.status == 'DW' %}
+							<span class="badge bg-info me-2 mb-2 fs-sm">상품준비중</span>
+						{% elif prd.status == 'DD' %}
+							<span class="badge bg-warning me-2 mb-2 fs-sm">출고지연</span>
+						{% elif prd.status == 'DN' %}
+							<span class="badge bg-info me-2 mb-2 fs-sm">배송중</span>
+						{% elif prd.status == 'DC' %}
+							<span class="badge bg-success me-2 mb-2 fs-sm">배송완료</span>
+						{% elif prd.status == 'CP' %}
+							<span class="badge bg-success me-2 mb-2 fs-sm">구매확정</span>
+						{% elif prd.status == 'RFR' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">반품요청</span>
+						{% elif prd.status == 'RFN' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">반품처리중</span>
+						{% elif prd.status == 'RFC' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">반품완료</span>
+						{% elif prd.status == 'EXR' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">교환요청</span>
+						{% elif prd.status == 'EXN' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">교환처리중</span>
+						{% elif prd.status == 'EXC' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">교환완료</span>
+						{% elif prd.status == 'EXP' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">기한만료</span>
+						{% elif prd.status == 'AR' %}
+							<span class="badge bg-secondary me-2 mb-2 fs-sm">환불</span>
+						{% else %}
+							<span class="badge bg-info me-2 mb-2 fs-sm">{{ prd.status }}</span>
+						{% endif %}
+						<!-- Item-->
+						<div class="d-flex w-100">
+							<div class="me-3" style="min-width:80px; width:20%;">
+								<a class="d-inline-block mx-auto" href="/{{ request.path_params.store_code }}/product/{{ prd.product_option.product.id }}">
+									<img src="{{ prd.product_thumbnail }}" class="img-1by1 rounded-2" alt="Product">
+								</a>
+							</div>
+							<div style="width:80%;">
+								<span class="fs-xs text-muted">{{ (prd.order.reg_date|string)[:10] }} 결제</span>
+								<div class="fs-sm">{{ prd.member.company.name }}</div>
+								<div class="product-title mb-1 fw-bold"><a href="/{{ request.path_params.store_code }}/product/{{ prd.product_option.product.id }}">{{ prd.product_name }}</a></div>
+								{% if prd.product_option.option_title %}
+									<div class="fs-sm word-keep-all">
+										<span class="text-muted">{{ prd.product_option.option_title }} : </span>{{ prd.product_option.option_1 }}{% if prd.product_option.option_2 %}/{{ prd.product_option.option_2 }}{% endif %}{% if prd.product_option.option_3 %}/{{ prd.product_option.option_3 }}{% endif %}
+										{% if prd.product_option.option_4 %}/{{ prd.product_option.option_4 }}{% endif %}{% if prd.product_option.option_5 %}/{{ prd.product_option.option_5 }}{% endif %}
+									</div>
+								{% endif %}
+								<div class="fs-lg fw-bold text-accent">{{ "{:,.0f}".format(prd.amount) }}원</div>
+								<div class="mt-3">
+									{% if prd.status in ['PD', 'PW'] %}
+										{#									<button class="btn btn-sm btn-outline-dark" onclick="order_cancel('{{ prd.order_id }}')">주문취소</button>#}
+									{% elif prd.status == 'DN' %}
+										<button class="btn btn-sm btn-outline-danger mb-1" onclick="shipping_tracking('{{ prd.order_shipping.provider_code }}', '{{ prd.order_shipping.number }}')">배송확인</button>
+									{% endif %}
+									{% if prd.status in ['DN', 'DC'] %}
+										<button class="btn btn-sm btn-outline-success mb-1" onclick="order_complete('{{ prd.id }}')">구매확정</button>
+										<button class="btn btn-sm btn-outline-secondary mb-1" onclick="return_exchange('{{ prd.order_id }}')">반품/교환</button>
+									{% endif %}								
+								</div>
+							</div>
+						</div>
+						<div class="mt-3">
+							<a href="/{{ request.path_params.store_code }}/order/history/{{ prd.order_id }}" class="btn btn-sm btn-outline-info d-block">주문상세</a>
+						</div>						
+					</div>
+				</div>
+			{% endfor %}
+		{% else %}
+			<div class="text-center">
+				<h6 class="my-5">주문 내역이 없습니다.</h6>
+				<a class="btn btn-outline-primary" href="/{{ request.path_params.store_code }}/product">상품 보러가기</a>
+			</div>
+		{% endif %}
+	</div>
+	{% if paginate and paginate.pages > 1 %}
+		<!-- Pagination-->
+		<nav class="d-flex justify-content-center pt-2" aria-label="Page navigation">
+			<ul class="pagination me-2">
+				{% if paginate.has_previous %}
+					<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page(1)"><i class="fa-solid fa-angles-left"></i></a></li>
+					<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.previous_page }})"><i class="fa-solid fa-angle-left"></i></a></li>
+				{% endif %}
+			</ul>
+			<ul class="pagination">
+				<li class="page-item d-sm-none">
+					<span class="page-link page-link-static">{{ paginate.current_page }} / {{ paginate.pages }}</span>
+				</li>
+				{% for i in range(1, paginate.pages + 1) %}
+					{% if i > paginate.current_page - 4 and i <= paginate.current_page + 4 %}
+						{% if i == paginate.current_page %}
+							<li class="page-item active d-none d-sm-block" aria-current="page">
+								<span class="page-link">{{ paginate.current_page }}<span class="visually-hidden">(current)</span></span>
+							</li>
+						{% else %}
+							<li class="page-item d-none d-sm-block"><a class="page-link" href="javascript:void(0);" onclick="page({{ i }})">{{ i }}</a></li>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			</ul>
+			<ul class="pagination ms-1">
+				{% if paginate.has_next %}
+					<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.next_page }})" aria-label="Next"><i class="fa-solid fa-angle-right"></i></a></li>
+					<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.pages }})" aria-label="Next"><i class="fa-solid fa-angles-right"></i></a></li>
+				{% endif %}
+			</ul>
+		</nav>
+	{% endif %}
+	<form action="https://info.sweettracker.co.kr/tracking/3" method="post" name="trackingForm" id="trackingForm" target="trackingForm">
+		<input type="hidden" class="form-control" id="t_key" name="t_key" value="{{ sweet_tracker_api_key }}">
+		<input type="hidden" class="form-control" name="t_code" id="t_code">
+		<input type="hidden" class="form-control" name="t_invoice" id="t_invoice">
+	</form>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    function page(page) {
+      addQueryParam('page', page);
+    }
+
+    function return_exchange(order_id) {
+      window.location.href = "/{{ request.path_params.store_code }}/order/re_step1/" + order_id
+    }
+
+    function api_order_complete(order_product_id) {
+      axios.post("/api/order/complete/" + order_product_id, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '구매확정 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = "/{{ request.path_params.store_code }}/order/history";
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function order_complete(prd_id) {
+      swal.fire({
+        position: 'center',
+        icon: 'info',
+        title: '구매확정 하시면 반품 및 교환이 되지 않습니다. <br>구매확정 하시겠습니까?',
+        showCancelButton: true,
+        confirmButtonColor: '#69b3fe',
+        confirmButtonText: "구매확정",
+        cancelButtonText: "취소",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          api_order_complete(prd_id);
+        }
+      })
+    }
+
+    function shipping_tracking(code, number) {
+      document.getElementById("t_code").value = code;
+      document.getElementById("t_invoice").value = number;
+      window.open('about:blank', 'trackingForm', 'width=500, height=550, top=100, left=100, fullscreen=no, menubar=no, status=no, toolbar=no, titlebar=yes, location=no, scrollbar=no')
+      document.getElementById("trackingForm").submit()
+    }
+
+    function go_legacy() {
+      let data = {
+        loginId: "{{ legacy_data['id'] }}",
+        password: "{{ legacy_data['pw'] }}",
+      }
+      axios.post("https://coniaworld.com/{{ store.code }}/login/v3", data, {
+        headers: {'Content-Type': 'application/json'}, withCredentials: true
+      }).then(function (response) {
+        let newPage = window.open('https://coniaworld.com/{{ store.code }}/my/order?soStatus=&itemType=10', '_blank');
+        newPage.addEventListener('load', function () {
+					newPage.document.cookie = document.cookie;
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+	</script>
+{% endblock %}

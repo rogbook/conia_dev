@@ -1,0 +1,102 @@
+{% if layout_product %}
+	<a href="/{{ request.path_params.store_code }}/product/{{ item.id }}" class="product-card product-list-type d-block h-100 text-dark">
+		<div class="d-flex">
+			<div class="position-relative h-100 flex-shrink-0" style="max-width:160px; width:30%; min-width:84px;">
+				<img src="{% if item.thumbnail %}{ item.thumbnail }}{% else %}{% if layout_product[item.id].photos %}{{ layout_product[item.id].photos[0].uri }}{% endif %}{% endif %}" class="rounded img-1by1" style="width: 100%;" alt="Product">
+				{% if layout_product[item.id].is_sold_out or layout_product[item.id].status == 'S' %}
+					<div class="img-disable">
+						<span class="fw-bold">품절</span>
+					</div>
+				{% elif layout_product[item.id].status == 'P' %}
+					<div class="img-disable">
+						<span class="fw-bold">판매 중지</span>
+					</div>
+				{% elif layout_product[item.id].status == 'PT' %}
+					<div class="img-disable">
+						<span class="fw-bold">판매 준비중</span>
+					</div>				
+				{% endif %}				
+			</div>
+			<div class="item-card-body p-0 ms-3 flex-shrink-1" style="width:100%; padding-bottom: 0.5rem !important;">
+				<div class="d-flex justify-content-between">
+					<div class="item-name-wrap">
+						{% if layout_product[item.id].brands %}
+							<div class="item-shop-name">{{ layout_product[item.id].brands[0].name }}</div>
+						{% endif %}
+						<div class="item-title h-auto ellipsis-1">{{ layout_product[item.id].name }}</div>
+						{% if layout_product[item.id].subtitle %}
+							<div class="item-subtitle ellipsis-1">{{ layout_product[item.id].subtitle }}</div>
+						{% endif %}					
+					</div>
+					{% if "MENU_FAVORITE" not in exclude_menu %}
+						<button class="btn-wishlist btn-sm mt-1 flex-shrink-0" type="button" data-bs-toggle="tooltip" data-bs-placement="left" title="관심상품 추가" onclick="wish(this, {{ item.id }})">
+							<i class="{% if item.id in wish_list %}ci-heart-filled text-primary{% else %}ci-heart{% endif %}"></i>
+						</button>
+					{% endif %}
+				</div>
+				{% if user or store.type == "O" %}
+					<div class="item-price-wrap">
+						{% if layout_product[item.id].product_default.origin_price > layout_product[item.id].product_default.selling_price %}
+							<span class="item-discount-per">{{ ((layout_product[item.id].product_default.origin_price - layout_product[item.id].product_default.selling_price)/layout_product[item.id].product_default.origin_price * 100)|custom_round }}%</span>
+						{% endif %}
+						<div class="item-selling-price">{{ "{:,.0f}".format(layout_product[item.id].product_default.selling_price) }}원</div>
+						{% if layout_product[item.id].product_default.origin_price > layout_product[item.id].product_default.selling_price %}
+							<del class="item-discount-price">
+								{{ "{:,.0f}".format(layout_product[item.id].product_default.origin_price) }}원
+							</del>
+						{% endif %}
+					</div>
+				{% endif %}
+				{% if layout_product[item.id].badges %}
+					<!--뱃지 영역-->
+					<div class="item-badge-wrap">
+						{% for badge in layout_product[item.id].badges %}
+							<span class="badge badge-shadow" style="background-color: {{ badge.color }}">{{ badge.name }}</span>
+						{% endfor %}
+					</div>
+				{% endif %}
+				{% if layout_product[item.id].view_end_time == 'Y' and (layout_product[item.id].sale_end_date and (layout_product[item.id].sale_end_date > current_datetime)) %}
+					<!-- 판매 시간 -->
+					{% if layout_product[item.id].sale_start_date and (layout_product[item.id].sale_start_date > current_datetime) %}
+						<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ layout_product[item.id].sale_start_date }}">
+							<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 시작까지</div>
+							<div class="countdown-days m-0 d-flex align-items-baseline">
+								<span class="countdown-value">0</span>
+								<span>일&nbsp;</span>
+							</div>
+					{% elif (layout_product[item.id].sale_start_time and (layout_product[item.id].sale_start_time > current_time)) or (layout_product[item.id].sale_start_time and layout_product[item.id].sale_end_time and (layout_product[item.id].sale_end_time < current_time)) %}
+						<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ layout_product[item.id].sale_start_time|add_date_str }}">
+							<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 시작까지</div>
+					{% elif layout_product[item.id].sale_end_time and (layout_product[item.id].sale_end_time > current_time) %}
+						<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ layout_product[item.id].sale_end_time|add_date_str }}">
+							<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 종료까지</div>
+					{% else %}
+						<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ layout_product[item.id].sale_end_date }}">
+							<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 종료까지</div>
+							<div class="countdown-days m-0 d-flex align-items-baseline">
+								<span class="countdown-value">0</span>
+								<span>일&nbsp;</span>
+							</div>
+					{% endif %}
+							<div class="countdown-hours m-0 d-flex align-items-center">
+								<span class="countdown-value">0</span>
+								<span>:</span>
+							</div>
+							<div class="countdown-minutes m-0 d-flex align-items-center">
+								<span class="countdown-value">0</span>
+								<span>:</span>
+							</div>
+							<div class="countdown-seconds m-0 d-flex align-items-center">
+								<span class="countdown-value">0</span>
+							</div>
+						</div>
+				{% endif %}
+				{% if layout_product[item.id].view_inventory == 'Y' %}
+					<div class="mt-1 fs-xs lineH-10 text-danger">
+						남은 수량 {% if layout_product[item.id].inven_cnt and layout_product[item.id].inven_cnt > 0 %}{{ layout_product[item.id].inven_cnt }}{% else %}0{% endif %}개
+					</div>
+				{% endif %}				
+			</div>
+		</div>
+	</a>
+{% endif %}

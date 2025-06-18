@@ -1,0 +1,105 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}마이 브랜드티켓{% endblock %}
+{% block menu_title_breadcrumb %}마이 브랜드티켓{% endblock %}
+{% block active_ecoupon %}active{% endblock %}
+{% block account_content %}
+	<div class="col-12 text-end mb-3">
+		<a href="javascript:void(0)" onclick="showUnused(this)" class="btn_unused btn btn-sm btn-outline-dark text-center" style="width:130.5px;">사용가능 티켓 보기</a>
+		<a href="javascript:void(0)" onclick="showAll(this)" class="btn_all btn btn-sm btn-outline-dark text-center" style="display: none; width:130.5px;">전체 티켓 보기</a>
+	</div>
+
+	{% if not used %}
+		{% if datas %}
+			{% for prd in datas %}
+				{% if prd.status == 'PD' or prd.balance != 0 %}
+					<div class="ticket ticket_unused card mb-4 p-0">
+						<div class="card-body">
+							<div class="d-flex w-100">
+								<div class="me-3" style="min-width: 80px; width: 20%;">
+									<a href="/{{ request.path_params.store_code }}/product/{{ prd.product_option.product.id }}"><img src="{{ prd.product_thumbnail }}" class="img-1by1 rounded-2"></a>
+								</div>
+								<div style="width: 80%;">
+									<div class="mb-1 fs-xs text-muted">{{ (prd.use_end_date|string)[:10] }} 까지</div>
+									<div class="fs-sm">{{ prd.product_option.product.brands[0].name }}</div>
+									<div class="product-title mb-1 fw-bold"><a href="/{{ request.path_params.store_code }}/product/{{ prd.product_option.product.id }}">{{ prd.product_name }}</a></div>
+									<div class="fs-lg fw-bold text-accent">{{ "{:,.0f}".format(prd.amount) }}원</div>
+								</div>
+							</div>
+							<div class="mt-3">
+								<a href="/{{ request.path_params.store_code }}/ecoupon/{{ prd.id }}" class="btn btn-sm btn-outline-info d-block w-100">{% if prd.ecoupon %}사용하기{% else %}자세히 보기{% endif %}</a>
+							</div>
+						</div>
+					</div>				
+				{% else %}
+					<div class="ticket ticket_used card mb-4 p-0">
+						<div class="card-body">
+							<div class="d-flex w-100">
+								<div class="position-relative me-3 h-100" style="min-width: 80px; width: 20%;">
+									<a href="javascript:void(0)" class="position-relative">
+										<img src="{{ prd.product_thumbnail }}" class="img-1by1 rounded-2 img-gray">
+									</a>
+									<div class="img-disable">
+										{% if prd.status == 'CP' %}
+											<span class="fw-bold fs-5">사용완료</span>
+										{% elif prd.status == 'EXP' %}
+											<span class="fw-bold fs-5">기한만료</span>
+										{% endif %}
+									</div>
+								</div>
+								<div style="width: 80%;">
+									<!-- 사용완료 / 기간만료 -->
+									{% if prd.status == 'CP' %}
+										<div class="mb-1 fs-xs text-muted">사용완료</div>
+									{% elif prd.status == 'EXP' %}
+										<div class="mb-2 fs-xs text-danger">기한만료</div>
+									{% endif %}
+									<div class="fs-sm">{{ prd.product_option.product.brands[0].name }}</div>
+									<div class="product-title mb-1 fw-bold"><a href="/{{ request.path_params.store_code }}/product/{{ prd.product_option.product.id }}">{{ prd.product_name }}</a></div>
+									<div class="fs-lg fw-bold text-accent">{{ "{:,.0f}".format(prd.amount) }}원</div>
+								</div>
+							</div>
+							<div class="mt-3">
+								<a href="/{{ request.path_params.store_code }}/ecoupon/{{ prd.id }}" class="btn btn-sm btn-outline-info d-block w-100">자세히 보기</a>
+							</div>
+						</div>
+					</div>
+				{% endif %}
+			{% endfor %}
+			<h6 class="my-5 text-center" style="display: none" id="empty_txt">사용 가능한 브랜드티켓이 없습니다.</h6>
+		{% else %}
+			<h6 class="my-5 text-center">사용 가능한 브랜드티켓이 없습니다.</h6>
+		{% endif %}
+	{% endif %}
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    function page(page) {
+      addQueryParam('page', page);
+    }
+
+		function showUnused(obj) {
+			document.querySelectorAll(".ticket_used").forEach(el => {
+				el.style.display = "none";
+			});
+			document.querySelector(".btn_unused").style.display = "none";
+			document.querySelector(".btn_all").style.display = "inline-block";
+
+      if (document.querySelectorAll(".ticket_unused").length === 0) {
+        document.getElementById('empty_txt').style.display = 'block';
+			}
+		}
+
+		function showAll(obj) {
+			document.querySelectorAll(".ticket_used").forEach(el => {
+				el.style.display = "block";
+			});
+			document.querySelector(".btn_all").style.display = "none";
+			document.querySelector(".btn_unused").style.display = "inline-block";
+
+      if (document.querySelectorAll(".ticket").length !== 0) {
+        document.getElementById('empty_txt').style.display = 'none';
+			}
+		}
+	</script>
+{% endblock %}

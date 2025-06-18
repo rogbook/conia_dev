@@ -1,0 +1,87 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}개인정보 수정{% endblock %}
+{% block menu_title_breadcrumb %}개인정보 수정{% endblock %}
+{% block active_profile %}active{% endblock %}
+{% block account_content %}
+	<div class="container pt-3">
+		<h3 class="mb-4 fw-bold">회원탈퇴 진행시 주의 안내</h3>
+		<div>
+			회원 탈퇴를 진행하시겠습니까?<br>
+			아쉽지만 탈퇴를 진행하신다면 아래와 같은 유의 사항을 확인해 주시고 탈퇴를 진행하시기 바랍니다.<br>
+			회원 탈퇴 시 이용하셨던 회원 전용과 관련된 모든 콘텐츠와 개인정보는 영구히 이용이 불가합니다.<br>
+			다만, 거래 정보가 있을 경우, 전자상거래 등에서의 소비자 보호에 관한 법률에 따라 계약 또는 청약철회에 관한 기록, 대금 결제 및 재화 등의 공급에 관한 기록은 5년간 보존합니다.<br><br>
+			경우에 따라 본 서비스는 법률, 보안 및 기타 관련 법률에 허용하거나 요구하는 이유로 개인 데이터를 제한적으로 보유 할 수 있습니다. 더 자세한 사항은 개인정보처리방침에서 확인하세요
+			<br><br>
+			탈퇴한 이메일로는 다시 가입할 수 없습니다.<br><br>
+			이러한 사항들을 고려하시어 탈퇴를 진행하여 주시기 바랍니다.<br><br>
+			보안을 위해 회원님의 이름과 계정 이메일 및 비밀번호를 확인합니다.
+		</div>
+
+		<div class="row mx-n2 mb-4 mt-3 gy-3">
+			<div class="col-md-6 col-12 px-2">
+				<label class="form-label flex-shrink-0">이름</label>
+				<div class="px-3 py-2 bg-secondary border rounded">{{ user.name }}</div>
+			</div>
+			<div class="col-md-6 col-12 px-2">
+				<label class="form-label flex-shrink-0">이메일</label>
+				<div class="px-3 py-2 bg-secondary border rounded">{{ user.email }}</div>
+			</div>
+			<div class="col-12 px-2">
+				<label class="form-label flex-shrink-0" for="pw">패스워드</label>
+				<input class="form-control px-3 py-2" type="password" id="pw" required="required" autocomplete="false">
+			</div>
+		</div>
+		<div class="border-top pt-4">
+			<a href="javascript:void(0);" class="btn btn-outline-danger d-block" onclick="signoutConfirm()">회원 탈퇴하기</a>
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script>
+    function signoutConfirm() {
+      let passwd = document.getElementById('pw').value;
+      if (!passwd) {
+        swal.fire('패스워드를 입력해주세요.');
+        return;
+      }
+
+      swal.fire({
+        position: 'center',
+        icon: 'warning',
+        title: '탈퇴 하시겠습니까?',
+        showCancelButton: true,
+				confirmButtonColor: "#d33",
+        confirmButtonText: "탈퇴",
+        cancelButtonText: "취소"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          signout(passwd);
+        }
+      });
+    }
+
+    function signout(passwd) {
+      axios.post("/api/customer/signout", {
+        passwd: passwd,
+      }, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '정상적으로 탈퇴 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = "/{{ request.path_params.store_code }}";
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          swal.fire(error.response.data.msg);
+        }
+      });
+    }
+	</script>
+{% endblock %}

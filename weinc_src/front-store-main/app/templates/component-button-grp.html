@@ -1,0 +1,20 @@
+<section class="{% if layout['top'] == 'Y' %}sticky-button {% endif %}container my-3 px-2" {% if layout['id'] %}id="Component_{{ layout.id }}"{% endif %} {% if layout['background'] %}style="background-image: url('{{ layout['background'] }}'); background-size: 100% 100%"{% endif %}>
+	<div class="position-relative">
+		<div class="py-2 px-2 overflow-scroll scroll-d-none x-slider">
+			<ul class="btn-grp anchor-box list-unstyled d-flex flex-nowrap my-0" style="gap: 6px;">
+				{% for item in layout["buttons"] %}
+					{% if item|component_item_visible %}
+						{% if item.type == 'anchor' %}
+							{% include 'element-anchor.html' %}
+						{% elif item.type == 'link' %}
+							{% include 'element-btn-link.html' %}
+						{% else %}
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			</ul>		
+		</div>
+		<div class="to_left d-none"></div>
+		<div class="to_right d-none"></div>		
+	</div>
+</section>

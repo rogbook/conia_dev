@@ -1,0 +1,159 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+	<!-- Page Title-->
+	<!-- <div class="bg-secondary">
+		<div class="container px-lg-3 px-4 py-3 d-lg-block d-none">
+			<div aria-label="breadcrumb">
+				<ol class="breadcrumb px-2">
+					<li class="breadcrumb-item"><a class="text-nowrap" href="/{{ request.path_params.store_code }}"><i class="ci-home"></i></a></li>
+					{% if current_category %}
+						{% if current_category.depth1_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth1_id %}{{ current_category.depth1_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth1_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth2_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth2_id %}{{ current_category.depth2_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth2_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth3_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if current_category.depth3_id %}{{ current_category.depth3_id }}{% else %}{{ current_category.id }}{% endif %}">{{ current_category.depth3_name }}</a></li>
+						{% endif %}
+						{% if current_category.depth4_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{{ current_category.id }}">{{ current_category.depth4_name }}</a></li>
+						{% endif %}
+					{% else %}
+						<li class="breadcrumb-item text-nowrap" aria-current="page">{{ page_title }}</li>
+					{% endif %}
+				</ol>
+			</div>
+		</div>
+	</div> -->
+
+	<div class="container position-relative">
+		{% if bottom_themes %}
+			<section class="row mx-0 my-3">
+				<div class="col-12 px-0">
+					<div class="py-2 overflow-scroll scroll-d-none x-slider">
+						<ul class="btn-grp nav nav-pills gap-2 flex-nowrap">
+							{% for row in bottom_themes %}
+								<li class="nav-item flex-shrink-0 mx-0"><a href="/{{ request.path_params.store_code }}/theme/{{ row.id }}" class="nav-link rounded-pill border fs-sm {% if theme and theme.id == row.id %} bg-dark text-white shadow-none active {% else %} bg-white {% endif %}" style="padding:0.3rem 0.85rem;">{{ row.name }}</a></li>
+							{% endfor %}
+						</ul>
+					</div>
+					<div class="to_left d-none"></div>
+					<div class="to_right d-none"></div>
+				</div>
+			</section>
+		{% endif %}
+		{% if sibling_themes %}
+			<section class="row mx-0 my-3">
+				<div class="col-12 px-0">
+					<div class="py-2 overflow-scroll scroll-d-none x-slider">
+						<ul class="nav nav-pills gap-2 flex-nowrap">
+							{% for row in sibling_themes %}
+								<li class="nav-item flex-shrink-0 mx-0"><a href="/{{ request.path_params.store_code }}/theme/{{ row.id }}" class="nav-link rounded-pill border fs-sm {% if theme and theme.id == row.id %} bg-dark text-white shadow-none active {% else %} bg-white {% endif %}" style="padding:0.3rem 0.85rem;">{{ row.name }}</a></li>
+							{% endfor %}
+						</ul>
+					</div>
+					<div class="to_left d-none"></div>
+					<div class="to_right d-none"></div>
+				</div>
+			</section>
+		{% endif %}
+	</div>
+
+	<div>
+		{% if layout_data %}
+			{% for layout in layout_data %}
+				{% if layout.type == 'slide-lg' %}
+					{% include 'component-slide-lg.html' %}
+				{% elif layout.type == 'slide-md' %}
+					{% include 'component-slide-md.html' %}
+				{% elif layout.type == 'banner' %}
+					{% include 'component-banner.html' %}
+				{% elif layout.type == 'banner-column-4' %}
+					{% include 'component-banner-column-4.html' %}
+				{% elif layout.type == 'banner-column-2' %}
+					{% include 'component-banner-column-2.html' %}
+				{% elif layout.type == 'column-4' %}
+					{% include 'component-column-4.html' %}
+				{% elif layout.type == 'column-2' %}
+					{% include 'component-column-2.html' %}
+				{% elif layout.type == 'button-grp' %}
+					{% include 'component-button-grp.html' %}
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+	</div>
+
+	<div class="container mt-4 mb-md-4 pb-5 mb-2">
+		<div class="row mx-n1">
+			{% if shops %}
+				{% for item in shops %}
+					<div class="col-6 px-1 mb-grid-gutter">
+						<a href="/{{ request.path_params.store_code }}/shop/{{ item.id }}" class="card product-card h-100 text-dark">
+							<img src="{{ item.image }}" class="img-1by1 rounded-3" alt="Shop">
+							<div class="d-flex flex-column text-center py-2 h-100">
+								<div class="fw-bold word-keep-all fs-sm">{{ item.name }}</div>
+								<div class="text-dgray ellipsis-2 word-keep-all fs-sm">{% if item.subtitle %}{{ item.subtitle }}{% endif %}</div>
+								{% if item.badges %}
+									<div class="d-flex justify-content-center gap-1 flex-wrap" style="margin:6px 0;">
+										{% for badge in item.badges %}
+											<span class="badge badge-shadow position-static" style="background-color: {{ badge.color }}">{{ badge.name }}</span>
+										{% endfor %}
+									</div>
+								{% endif %}
+							</div>
+						</a>
+					</div>
+				{% endfor %}
+			{% else %}
+				<div class="card py-5 text-center shadow">
+					<i class="ci-delivery mb-2 h1"></i>
+					<span>항목이 없습니다.</span>
+				</div>
+			{% endif %}
+
+			{% if paginate and paginate.pages > 1 %}
+				<!-- Pagination-->
+				<nav class="d-flex justify-content-center pt-2" aria-label="Page navigation">
+					<ul class="pagination me-2">
+						{% if paginate.has_previous %}
+							<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page(1)"><i class="fa-solid fa-angles-left"></i></a></li>
+							<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.previous_page }})"><i class="fa-solid fa-angle-left"></i></a></li>
+						{% endif %}
+					</ul>
+					<ul class="pagination">
+						<li class="page-item d-sm-none">
+							<span class="page-link page-link-static">{{ paginate.current_page }} / {{ paginate.pages }}</span>
+						</li>
+						{% for i in range(1, paginate.pages + 1) %}
+							{% if i > paginate.current_page - 4 and i <= paginate.current_page + 4 %}
+								{% if i == paginate.current_page %}
+									<li class="page-item active d-none d-sm-block" aria-current="page">
+										<span class="page-link">{{ paginate.current_page }}<span class="visually-hidden">(current)</span></span>
+									</li>
+								{% else %}
+									<li class="page-item d-none d-sm-block"><a class="page-link" href="javascript:void(0);" onclick="page({{ i }})">{{ i }}</a></li>
+								{% endif %}
+							{% endif %}
+						{% endfor %}
+					</ul>
+					<ul class="pagination ms-1">
+						{% if paginate.has_next %}
+							<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.next_page }})" aria-label="Next"><i class="fa-solid fa-angle-right"></i></a></li>
+							<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="page({{ paginate.pages }})" aria-label="Next"><i class="fa-solid fa-angles-right"></i></a></li>
+						{% endif %}
+					</ul>
+				</nav>
+			{% endif %}
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    function page(page) {
+      addQueryParam('page', page);
+    }
+	</script>
+{% endblock %}

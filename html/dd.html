@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>플랫폼 구성도</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f7fafc;
+            padding: 2rem;
+        }
+        /* Mermaid 다이어그램 스타일 오버라이드 */
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="w-full max-w-6xl p-8 bg-white rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">유통 및 멀티채널 판매 플랫폼 구성도</h1>
+        <div class="mermaid w-full">
+            graph TD
+                subgraph "1. 사용자 인터페이스 (UI) 계층"
+                    style UI fill:#f2f2f2,stroke:#333,stroke-width:2px
+                    UI_SUP[공급자 포털<br>(웹)]
+                    UI_WEL[워크앤라이프 혜택 플랫폼<br>(웹/모바일)]
+                    UI_RET[소매점 총판 포털<br>(웹)]
+                    UI_ADM[내부 운영자/관리자 대시보드<br>(웹)]
+                end
+
+                subgraph "2. 애플리케이션 서비스 계층 (마이크로서비스)"
+                    style APP fill:#e9f5ff,stroke:#333,stroke-width:2px
+                    API_GW(API 게이트웨이)
+
+                    subgraph "중앙 공급자 플랫폼 서비스"
+                        SVC_SUP[공급자 관리]
+                        SVC_PIM[상품 정보 관리 (PIM)]
+                        SVC_OMS[중앙 주문 관리 (OMS)]
+                        SVC_INV[재고 관리]
+                        SVC_SET[정산/결제]
+                    end
+
+                    subgraph "계열사 채널 서비스"
+                        SVC_WEL[기업 복지몰 서비스]
+                        SVC_RET[총판 채널 서비스]
+                    end
+
+                    subgraph "공통 서비스"
+                        SVC_IAM[인증/인가 (IAM)]
+                        SVC_NOT[알림 서비스]
+                    end
+                end
+
+                subgraph "3. 데이터 저장 계층"
+                    style DATA fill:#e6ffed,stroke:#333,stroke-width:2px
+                    DB_OP[운영 DB<br>(firstSQL: PostgreSQL)]
+                    DB_DWH[데이터 웨어하우스/레이크]
+                    DB_CACHE[캐시 저장소<br>(Redis)]
+                end
+
+                subgraph "4. 외부 시스템 연동 계층"
+                    style EXT fill:#fff0e6,stroke:#333,stroke-width:2px
+                    EXT_LOG[물류 시스템<br>(3PL, 택배사)]
+                    EXT_PAY[결제 시스템<br>(PG, VAN)]
+                    EXT_AUTH[외부 인증 시스템<br>(SSO)]
+                    EXT_TAX[세금계산서 시스템]
+                end
+
+                subgraph "5. 데이터 분석 및 BI 계층"
+                    style BI fill:#f0e6ff,stroke:#333,stroke-width:2px
+                    BI_PIPE[데이터 파이프라인<br>(ETL/ELT)]
+                    BI_TOOL[분석 엔진 & BI 도구]
+                end
+
+                %% --- Connections ---
+                
+                %% UI to APP
+                UI_SUP & UI_WEL & UI_RET & UI_ADM --> API_GW
+
+                %% Gateway to Services
+                API_GW --> SVC_SUP & SVC_PIM & SVC_OMS & SVC_WEL & SVC_RET & SVC_IAM
+
+                %% Services to Data
+                SVC_OMS & SVC_INV & SVC_PIM & SVC_SUP & SVC_SET & SVC_WEL & SVC_RET --> DB_OP
+                SVC_OMS & SVC_PIM & SVC_INV --> DB_CACHE
+
+                %% Services to External Systems
+                SVC_OMS --> EXT_LOG
+                SVC_SET --> EXT_PAY
+                SVC_SET --> EXT_TAX
+                SVC_IAM --> EXT_AUTH
+
+                %% Service to Service Communication
+                SVC_OMS <--> SVC_INV
+                SVC_WEL & SVC_RET --> SVC_OMS
+                SVC_OMS --> SVC_NOT
+
+                %% Analysis Flow
+                DB_OP --> BI_PIPE
+                BI_PIPE --> DB_DWH
+                DB_DWH --> BI_TOOL
+                BI_TOOL --> UI_ADM
+
+                %% Data Flow Example (Order)
+                linkStyle 19 stroke:blue,stroke-width:2px,fill:none,stroke-dasharray: 5 5;
+                linkStyle 20 stroke:blue,stroke-width:2px,fill:none,stroke-dasharray: 5 5;
+                linkStyle 21 stroke:blue,stroke-width:2px,fill:none,stroke-dasharray: 5 5;
+                linkStyle 22 stroke:blue,stroke-width:2px,fill:none,stroke-dasharray: 5 5;
+                linkStyle 23 stroke:blue,stroke-width:2px,fill:none,stroke-dasharray: 5 5;
+
+                UI_WEL -- "1. 주문" --> API_GW
+                API_GW -- "2. 주문 정보 전달" --> SVC_WEL
+                SVC_WEL -- "3. OMS로 전달" --> SVC_OMS
+                SVC_OMS -- "4. 공급자 알림" --> UI_SUP
+                SVC_OMS -- "5. 배송 요청/추적" --> EXT_LOG
+        </div>
+    </div>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

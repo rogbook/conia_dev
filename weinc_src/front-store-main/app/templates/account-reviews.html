@@ -1,0 +1,81 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}상품 리뷰{% endblock %}
+{% block menu_title_breadcrumb %}상품 리뷰{% endblock %}
+{% block active_review %}active{% endblock %}
+{% block account_content %}
+	{% if reviews %}
+		{% for review in reviews %}
+			<div class="card mb-3">
+				<div class="card-body py-2 px-2 wish-item">
+					<div class="d-flex justify-content-between">
+						<div class="d-flex align-items-center">
+							<a class="me-2" href="/{{ store.code }}/product/{{ review.product.id }}"><img src="{{ review.product.photos[0].uri }}" class="img-1by1 rounded-1" style="width:80px;" alt="Product"></a>
+							<h3 class="product-title fs-base mb-2 fw-bold"><a href="/{{ store.code }}/product/{{ review.product.id }}">{{ review.product.name }}</a></h3>
+						</div>
+						<div class="position-relative text-end mx-1 flex-shrink-0">
+              <button class="btn btn-sm py-1 px-2 text-muted" onclick="editMenu(this);"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+              <div class="edit_menu position-absolute end-100 top-0 border fs-sm bg-white rounded-1" style="width:max-content; display: none;">
+                <a href="/{{ store.code }}/board/review/{{ review.id }}" class="d-flex flex-wrap align-items-center justify-content-end px-3 py-1 text-dark border-bottom"><i class="ci-edit-alt me-3" style="font-size:9px;"></i> 수정</a>
+                <a href="javascript:;" onclick="remove(this, {{ review.id }})" class="d-flex flex-wrap align-items-center justify-content-end px-3 py-1 text-dark"><i class="ci-close me-3" style="font-size:9px;"></i> 삭제</a>
+              </div>
+						</div>
+					</div>
+					<hr class="my-2">
+					<div class="p-3">
+						<div class="review_imgs_{{ review.id }} d-flex flex-wrap gap-2">
+							{% for photo in review.photos %}
+								<img src="{{ photo.uri }}" class="w-100 mb-2" style="max-width:150px;">
+							{% endfor %}
+						</div>
+						<div id="review_conts_{{ review.id }}" class="pre">{{ review.contents }}</div>
+					</div>
+				</div>
+			</div>
+		{% endfor %}
+	{% else %}
+		<div class="text-center">
+			<h6 class="my-5">작성한 상품 리뷰가 없습니다.</h6>
+			<a class="btn btn-outline-primary" href="/{{ request.path_params.store_code }}/product">상품 보러가기</a>
+		</div>
+	{% endif %}
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    function editMenu(obj) {
+      $(obj).siblings(".edit_menu").toggle();
+    }
+		
+    function remove(obj, reviewId) {
+			Swal.fire({
+				title: "리뷰를 삭제하시겠습니까?",
+				icon: "warning",
+				showCancelButton: true,
+				confirmButtonColor: "#fe696a",
+				confirmButtonText: "예",
+				cancelButtonText: "취소"
+			}).then((result) => {
+				if (result.isConfirmed) {
+					axios.delete("/api/product/review/" + reviewId, {
+						headers: {'Content-Type': 'application/json'}
+					}).then(function (response) {
+						obj.closest(".wish-item").remove();
+						Swal.fire({
+							icon: 'success',
+							title: '리뷰가 삭제 되었습니다.',
+							showConfirmButton: false,
+							timer: 1500
+						}).then(() => {
+							window.location.reload();
+						})
+					}).catch(function (error) {
+						console.log(error);
+						if (error.response) {
+							alert(error.response.data.msg);
+						}
+					});
+				}
+			});
+    }
+	</script>
+{% endblock %}

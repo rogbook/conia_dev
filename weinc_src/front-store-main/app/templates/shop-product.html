@@ -1,0 +1,1131 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% block opengraph %}
+		<meta property="og:url" content="{{ url_for('index') }}{{ request.path_params.store_code }}/product/{{ product.id }}">
+		<meta property="og:image" content="{{ photos[0].uri }}">
+	{% if photos[0].uri[-3:] == "png" %}
+		<meta property="og:image:type" content="image/png">
+	{% else %}
+		<meta property="og:image:type" content="image/jpeg">
+	{% endif %}
+		<meta property="og:description" content="{{ product.name }}">
+{% endblock %}
+{% block head %}{{ super() }}
+	<style>
+    figure > img {width: 100%}
+    .handheld-toolbar-enabled .footer {padding-bottom: 8.3rem !important;}
+	</style>
+{% endblock %}
+{% if user %}
+	{% block header_user %}{{ user.name }}{% endblock %}
+{% endif %}
+{% block content %}
+	<!-- Page Title-->
+	<!-- <div class="pt-3 pb-5 bg-secondary d-lg-block d-none">
+		<div class="container px-lg-3 px-4 pt-1">
+			<nav aria-label="breadcrumb">
+				{% for category in categorys %}
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a class="text-nowrap" href="/{{ request.path_params.store_code }}"><i class="ci-home"></i></a></li>
+						{% if category.category.depth1_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if category.category.depth1_id %}{{ category.category.depth1_id }}{% else %}{{ category.category.id }}{% endif %}">{{ category.category.depth1_name }}</a></li>
+						{% endif %}
+						{% if category.category.depth2_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if category.category.depth2_id %}{{ category.category.depth2_id }}{% else %}{{ category.category.id }}{% endif %}">{{ category.category.depth2_name }}</a></li>
+						{% endif %}
+						{% if category.category.depth3_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{% if category.category.depth3_id %}{{ category.category.depth3_id }}{% else %}{{ category.category.id }}{% endif %}">{{ category.category.depth3_name }}</a></li>
+						{% endif %}
+						{% if category.category.depth4_name %}
+							<li class="breadcrumb-item text-nowrap"><a href="/{{ request.path_params.store_code }}/category/{{ category.category.id }}">{{ category.category.depth4_name }}</a></li>
+						{% endif %}
+					</ol>
+				{% endfor %}
+			</nav>
+		</div>
+	</div> -->
+	<div class="container mt-4 mb-2 mb-md-4 pb-5">
+	<!-- Gallery + details-->
+	<div class="bg-light shadow-lg rounded-3 px-3 py-3 mb-5">
+	<div class="">
+	<div class="row">
+	<!-- Product gallery-->
+	<div class="">
+		<div class="product-gallery">
+			<div class="product-gallery-preview order-sm-2 mt-0">
+				{% for photo in photos %}
+					<div class="product-gallery-preview-item {% if loop.first %}active{% endif %} overflow-hidden" id="prd-{{ photo.id }}">
+						<img class="" src="{{ photo.uri }}" data-zoom="" alt="Product image">
+						<div class="image-zoom-pane"></div>
+					</div>
+				{% endfor %}
+
+			</div>
+			<div class="product-gallery-thumblist order-sm-1 p-0">
+				{% for photo in product.photos %}
+					<a class="product-gallery-thumblist-item {% if loop.first %}active{% endif %}" href="#prd-{{ photo.id }}">
+						<img src="{{ photo.uri }}" alt="Product thumb" class="img-1by1">
+					</a>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	<!-- Product details-->
+	<div class="pt-4">
+	<hr class="mb-3 d-block">
+	<div class="product-details ms-auto">
+	<div class="d-flex justify-content-between align-items-center mb-2">
+		<!-- 리뷰 -->
+		<a href="javascript:;" onclick="openReview();">
+			<span class="d-inline-block fs-sm text-body align-middle mt-1 ms-1">리뷰 {{ reviews|length }}</span>
+		</a>
+		<!-- 관심상품 -->
+		{% if "MENU_FAVORITE" not in exclude_menu %}
+			<button class="btn-wishlist me-0" type="button" data-bs-toggle="tooltip" title="관심 상품 등록" onclick="wish(this, {{ product.id }})"><i class="{% if wish %}ci-heart-filled text-primary{% else %}ci-heart{% endif %}"></i></button>
+		{% endif %}
+	</div>
+	<!-- 가격 -->
+	<div class="mb-3">
+		<div class="h5 mb-1 fw-bold">{{ product.name }}</div>
+		{% if product.subtitle %}
+			<div class="text-muted fs-sm">{{ product.subtitle }}</div>
+		{% endif %}
+		<div class="mt-2">
+			{% if product_default.selling_price < product_default.origin_price %}
+				<div>
+					<span class="me-1 text-primary fw-bold fs-lg">{{ ((product_default.origin_price - product_default.selling_price)/product_default.origin_price * 100)|custom_round }}%</span>
+					<del class="text-muted fs-lg">{{ "{:,.0f}".format(product_default.origin_price) }}원</del>
+				</div>
+			{% endif %}
+			<div class="h3 me-1 fw-bold lineH-10">{{ "{:,.0f}".format(product_default.selling_price) }}<small class="fw-normal">원</small></div>
+		</div>
+	</div>
+	<div class="mb-2">
+		{% if product.view_end_time == 'Y' and (product.sale_end_date and (product.sale_end_date > current_datetime)) %}
+			<div class="mb-1">
+			<!-- 판매 시간 -->
+			{% if product.sale_start_date and (product.sale_start_date > current_datetime) %}
+				<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ product.sale_start_date }}">
+				<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 시작까지</div>
+				<div class="countdown-days m-0 d-flex align-items-baseline">
+					<span class="countdown-value">0</span>
+					<span>일&nbsp;</span>
+					<div class="mt-2"></div>
+				</div>
+			{% elif (product.sale_start_time and (product.sale_start_time > current_time)) or (product.sale_start_time and product.sale_end_time and (product.sale_end_time < current_time)) %}
+				<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ product.sale_start_time|add_date_str }}">
+				<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 시작까지</div>
+			{% elif product.sale_end_time and (product.sale_end_time > current_time) %}
+				<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ product.sale_end_time|add_date_str }}">
+				<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 종료까지</div>
+			{% else %}
+				<div class="countdown mt-1 text-info fs-xs" data-countdown="{{ product.sale_end_date }}">
+				<div class="d-flex align-items-center gap-1 me-1"><i class="ci-time"></i>판매 종료까지</div>
+				<div class="countdown-days m-0 d-flex align-items-baseline">
+					<span class="countdown-value">0</span>
+					<span>일&nbsp;</span>
+				</div>
+			{% endif %}
+      <div class="countdown-hours m-0">
+        <span class="countdown-value">0</span>
+        <span>:</span>
+      </div>
+      <div class="countdown-minutes m-0">
+        <span class="countdown-value">0</span>
+        <span>:</span>
+      </div>
+      <div class="countdown-seconds m-0">
+        <span class="countdown-value">0</span>
+      </div>
+		</div>
+    </div>
+		{% endif %}
+		{% if product.view_inventory == 'Y' %}
+			<!-- 재고 수량 -->
+			<div class="fs-xs text-primary">{% if product.inven_cnt > 0 %}{{ product.inven_cnt }}{% else %}0{% endif %}개 남음</div>
+		{% endif %}
+		</div>
+		{% if product.badges and product.badges|length > 0 %}
+			<!--뱃지 영역-->
+			<div class="d-flex justify-content-start mb-3">
+				{% for badge in product.badges %}
+					<span class="badge badge-shadow me-2" style="background-color: {{ badge.color }}">{{ badge.name }}</span>
+				{% endfor %}
+			</div>
+		{% endif %}
+		<!-- Product panels-->
+		{% if product.type == 'DP' %}
+      <!-- 배송 정보 -->
+			<div class="accordion my-4" id="productPanels">
+				<div class="accordion-item">
+					<h3 class="accordion-header">
+						<button class="accordion-button" href="#shippingOptions" type="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="shippingOptions">
+							<i class="ci-delivery text-muted lead align-middle me-2"></i>배송 정보
+						</button>
+					</h3>
+					<div class="accordion-collapse collapse show" id="shippingOptions" data-bs-parent="#productPanels">
+						<div class="accordion-body px-2 fs-sm">
+							<div class="d-flex border-bottom pb-3 px-2">
+								<div class="fw-semibold text-dark" style="width:70px;">배송구분</div>
+								<div>{{ shipping.type }} {% if shipping.cost != '무료배송' %}{% if shipping.pay_type == '선불' %}(주문시 결제){% else %}(착불){% endif %}{% endif %} </div>
+							</div>
+							<div class="d-flex border-bottom py-3 px-2">
+								<div class="fw-semibold text-dark" style="width:70px;">배송유형</div>
+								<div>{{ shipping.calc }}</div>
+							</div>
+							<div class="d-flex px-2 pt-3">
+								<div class="fw-semibold text-dark" style="width:70px;">배송비</div>
+								<div>{% if shipping.cost_size > 2 %}<a class="text-decoration-underline" data-bs-toggle="modal" href="#modalShipping">{{ shipping.cost }}</a>{% else %}{{ shipping.cost }}{% endif %}</div>
+							</div>
+							{% if shipping.add_cost %}
+								<div class="d-flex pt-2 pb-1 px-2">
+									<div class="fw-semibold text-dark" style="width:70px;"></div>
+									<div>{{ shipping.add_cost }}</div>
+								</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			</div>
+		{% elif product.type == 'UP-OF' %}
+      <!-- 매장 정보 -->
+			<div class="accordion my-4" id="storePanels">
+				<div class="accordion-item">
+					<h3 class="accordion-header">
+						<button class="accordion-button" href="#storeInfo" type="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="storeInfo">
+							<i class="ci-store text-muted lead align-middle me-2"></i>매장 정보
+						</button>
+					</h3>
+					<div class="accordion-collapse collapse show" id="storeInfo" data-bs-parent="#storePanels">
+						<div class="accordion-body px-2 fs-sm">
+							<div class="d-flex border-bottom pb-3 px-2">
+								<div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">상호명</div>
+								<div>{{ shop.name }}</div>
+							</div>            
+							<div class="d-flex border-bottom py-3 px-2">
+								<div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">전화번호</div>
+								<div>{{ shop.tel }}</div>
+							</div>
+							<div class="d-flex border-bottom py-3 px-2">
+								<div>
+									<div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">주소</div>
+								</div>
+								<div class="word-keep-all">{{ shop.address }} {{ shop.address_detail }}</div>
+							</div>
+							<div class="d-flex border-bottom py-3 px-2">
+								<div>
+									<div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">영업시간</div>
+								</div>
+								<div>{{ shop.work_time }}</div>
+							</div>
+							<div class="d-flex border-bottom py-3 px-2">
+								<div>
+									<div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">휴무</div>
+								</div>
+								<div>{{ shop.holiday }}</div>
+							</div>
+							<div class="d-flex pt-3 px-2">
+								<div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">기타안내사항</div>
+								<div class="pre word-keep-all">{{ shop.description|safe }}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+    {% elif product.type == 'UP-EC' %}
+      <!-- 상품 정보 (e-coupon) -->
+      <div class="accordion my-4" id="ecouponPanels">
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button" href="#ecouponInfo" type="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="ecouponInfo">
+              <i class="ci-lable text-muted lead align-middle me-2"></i>상품 정보
+            </button>
+          </h3>
+          <div class="accordion-collapse collapse show" id="ecouponInfo" data-bs-parent="#ecouponPanels">
+            <div class="accordion-body px-2 fs-sm">
+              <div class="d-flex border-bottom pb-3 px-2">
+                <div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">상품 형태</div>
+                <div>모바일 교환권</div>
+              </div>            
+              <div class="d-flex border-bottom py-3 px-2">
+                <div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">유효기간</div>
+                {% if product.use_end_date %}
+									<div class="word-keep-all">{{ product.use_end_date }}까지</div>
+								{% elif product.use_end_period %}
+									<div class="word-keep-all">구매 후 {{ product.use_end_period }}일</div>
+								{% endif %}
+              </div>
+							{% if product.use_place %}
+              <div class="d-flex pt-3 px-2">
+                <div class="fw-semibold text-dark flex-shrink-0" style="width:100px;">이용가능매장</div>
+                <div class="pre word-keep-all">{{ product.use_place }}</div>
+              </div>
+							{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+		{% endif %}
+		<!-- option -->
+		<form class="w-100 bg-white option_box" onsubmit="return false;">
+			<div class="option_select_wrap px-4 pt-5">
+				<div class="d-flex justify-content-center align-items-center w-100 py-1 position-absolute top-0 start-0 border-bottom bg-secondary" onclick="closeOption();" style="cursor: pointer;"><i class="ci-arrow-down fs-xs"></i></div>
+				{% if product.options|length > 1 %}
+					<div class="mb-3">
+						<div class="d-flex justify-content-between align-items-center pb-1">
+							<label class="form-label" for="product-size">옵션:</label>
+						</div>
+						{% set option_list = product.options[0].option_title.split(',') %}
+						{% for title in option_list %}
+							<div class="mb-3">
+								<select class="form-select py-1 form-select-sm option-select2 {% if loop.last %}last-option{% endif %}" id="option{{ loop.index }}" data-placeholder="{{ title }}">
+									<option></option>
+								</select>
+							</div>
+						{% endfor %}
+					</div>
+					<div class="option-list"></div>
+					<div class="d-flex justify-content-end align-items-center pt-3 border-top">
+						<span class="h3 me-1 text-primary fw-bold"><span class="fs-lg text-dark me-2">총 상품 금액 </span><span id="total">0</span>원</span>
+					</div>
+				{% else %}
+					<div class="option-frame">
+						<div class="d-flex justify-content-between align-items-center">
+							<h6 class="mb-0">{{ product.name }}</h6>
+							<a class="text-muted" href="#" onclick="" style="visibility: hidden"><i class="ci-close small"></i></a>
+						</div>
+						<div class="mb-3 d-flex justify-content-between align-items-center">
+							<div class="input-group input-group-sm d-flex" style="width:128px;">
+								<button class="btn btn-outline-dark" type="button" onclick="minus(this, {{ product_default.selling_price }})"><i class="fa-solid fa-minus"></i></button>
+								<input class="form-control text-center w-25" type="text" name="cnt" value="1" onkeyup="valueChange(this, {{ product_default.selling_price }})">
+								<button class="btn btn-outline-dark" type="button" onclick="plus(this, {{ product_default.selling_price }})"><i class="fa-solid fa-plus"></i></button>
+							</div>
+							<span class="h3 fw-normal me-1 pt-3"><span id="prdPrice">{{ "{:,.0f}".format(product_default.selling_price) }}</span>원</span>
+							<input type="hidden" value="{{ product_default.id }}" name="id">
+							<input type="hidden" value="{{ product_default.selling_price }}" name="price">
+						</div>
+					</div>
+					<hr class="d-block">
+					<div class="d-flex justify-content-end align-items-center mt-3">
+						<span class="h3 me-1 text-primary fw-bold"><span class="fs-lg text-dark me-2">총 상품 금액 </span><span id="total">{{ "{:,.0f}".format(product_default.selling_price) }}</span>원</span>
+					</div>
+				{% endif %}
+			</div>
+			<!-- btn -->
+			<div class="p-3 d-flex justify-content-between bg-white">
+				{% if is_sold_out or product.status == 'S' %}
+					<button class="btn btn-outline-primary btn-shadow d-block w-100" type="button">품절</button>
+				{% elif product.status == 'P' %}
+					<button class="btn btn-outline-primary btn-shadow d-block w-100" type="button">판매 중지</button>
+				{% elif product.status == 'PT' %}
+					<button class="btn btn-outline-primary btn-shadow d-block w-100" type="button">판매 준비중</button>
+				{% else %}
+          {% if "MENU_FAVORITE" not in exclude_menu %}
+            <div class="d-block me-3" style="width:44px;">
+              <button class="btn-wishlist" type="button" data-bs-toggle="tooltip" title="관심 상품 등록" onclick="wish(this, {{ product.id }})"><i class="{% if wish %}ci-heart-filled text-primary{% else %}ci-heart{% endif %}"></i></button>
+            </div>
+          {% endif %}
+					<div class="d-flex btn_closed" style='width:{% if "MENU_FAVORITE" not in exclude_menu %}calc(100% - 44px){% else %}100%{% endif %};'>
+						{% if product.type != 'UP-EC' %}
+						<button class="btn btn-outline-primary btn-shadow d-block w-100 me-2" type="button" onclick="openOption();">장바구니</button>
+						{% endif %}
+						<button class="btn btn-primary btn-shadow d-block w-100" type="button" onclick="openOption();">구매하기</button>
+					</div>
+					<div class="d-none w-100 btn_opened">
+						{% if product.type != 'UP-EC' %}
+						<button class="btn btn-outline-primary btn-shadow d-block w-100 me-2" type="button" onclick="add_cart()">장바구니</button>
+						{% endif %}
+						<button class="btn btn-primary btn-shadow d-block w-100" type="button" onclick="order()">구매하기</button>
+					</div>
+				{% endif %}
+			</div>
+		</form>
+		<!-- // -->
+		</div>
+  </div>
+	</div>
+
+	
+  <ul class="nav nav-tabs nav-fill justify-content-center mt-5" role="tablist">
+    <li class="nav-item"><a href="#product_info" class="nav-link active px-2" data-bs-toggle="tab" role="tab">상품설명</a></li>
+    <li class="nav-item"><a href="#essential_info" class="nav-link px-2" data-bs-toggle="tab" role="tab">상세정보</a></li>
+    {% if extra_info %}
+      <li class="nav-item"><a href="#additional_info" class="nav-link px-2" data-bs-toggle="tab" role="tab">부가정보</a></li>
+    {% endif %}
+    <li class="nav-item"><a href="#review" class="nav-link px-2" data-bs-toggle="tab" role="tab">리뷰</a></li>
+  </ul>
+  <div class="tab-content">
+    <div id="product_info" role="tabpanel" class="tab-pane fade show active">
+      <div class="d-flex flex-column justify-content-center align-items-center position-relative">
+				{% if store_memo %}
+				<!-- Product description section 1-->
+        <div class="col-sm-12 p-4 bg-secondary pre">{{ store_memo|safe }}</div>
+				{% endif %}
+        <!-- Product description section 2-->
+        <div id="descr_box" class="closed col-sm-12 pt-md-3 pb-5" style="height:fit-content; overflow:hidden;">
+          {{ contents|safe }}
+        </div>
+        <!-- Read more -->
+        <div id="read_more_area" class="col-12 position-absolute bottom-0 pt-5 pb-2 px-1 text-center d-none" style="background:linear-gradient(rgba(255,255,255,0) 20%,rgba(255,255,255,1) 80%);">
+          <button class="btn w-100 bg-white border border-dark" onclick="descrOpen(this);">자세히 보기 &nbsp;<i class="fas fa-chevron-down"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="essential_info" role="tabpanel" class="tab-pane fade pb-3">
+      <div class="container">
+        <div class="row justify-content-center">
+          {% if notice_info %}
+            <div class="px-0">
+              <h5>상품 정보 고시</h5>
+              <div class="table-responsive">
+                <table class="table table-bordered fs-sm">
+                  <tbody>
+                  {% for info in notice_info %}
+                    <tr>
+                      <td style="width: 40%; background-color: #0d0a0a10">{{ info.item }}</td>
+                      <td style="width: 60%">{{ info.contents }}</td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {% endif %}
+          {% if common_info %}
+            <div class="px-0 pt-3">
+              {{ common_info|safe }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% if extra_info %}
+      <div id="additional_info" role="tabpanel" class="tab-pane fade pb-3">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="px-0">
+              <div class="table-responsive">
+                <table class="table table-bordered fs-sm">
+                  <tbody>
+                  {% for info in extra_info %}
+                    <tr>
+                      <td style="width: 40%; background-color: #0d0a0a10">{{ info.category }}</td>
+                      <td style="width: 60%">{{ info.contents }}</td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    <div id="review" role="tabpanel" class="tab-pane fade pb-3">
+      <!-- 리뷰 리스트 -->
+      <div class="row justify-content-center px-4">
+        <!-- Reviews list-->
+        <div class="col-12 px-0">
+          <!-- Review-->
+          {% if reviews %}
+            {% for review in reviews %}
+              {% if review.status == 'Y' %}
+                <div class="product-review border-bottom px-3 py-3">
+                  <div>
+                    <span class="fw-bold me-2">{{ review.customer.name[0] }} * *</span>
+                    <small class="text-muted">{{ (review.mod_date|string)[:10] }}</small>                      
+                  </div>                
+                  <div class="d-flex flex-wrap gap-2">
+                    {% for photo in review.photos %}
+                      <img src="{{ photo.uri }}" class="w-100 mb-2" style="max-width:150px;">
+                    {% endfor %}
+                  </div>
+                  <div class="fs-md">{{ review.contents }}</div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <div class="text-center pt-4">상품 리뷰가 없습니다.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mt-4 pt-3 border-top">
+    <a class="btn btn-outline-accent" type="button" data-bs-toggle="modal" href="#modalQuestion">상품 문의하기</a>
+  </div>
+
+	{% if shipping %}
+		<div class="modal fade" tabindex="-1" role="dialog" id="modalShipping">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<div class="modal-title">배송비 상세정보</div>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						{% if shipping.data %}
+							<table class="table">
+								<thead>
+								<tr class="text-center">
+									{% if shipping.data[0].type == 'cost' %}
+										{% set unit = '원' %}
+										<th>구간 (금액)</th>
+									{% elif shipping.data[0].type == 'ea' %}
+										{% set unit = '개' %}
+										<th>구간 (수량)</th>
+									{% elif shipping.data[0].type == 'weight' %}
+										{% set unit = 'Kg' %}
+										<th>구간 (중량)</th>
+									{% endif %}
+									<th>배송비</th>
+								</tr>
+								</thead>
+								<tbody>
+								{% for cost in shipping.data %}
+									<tr class="text-center">
+										<td>{% if cost.section_start %}{{ '{:,.0f}'.format(cost.section_start) }}<small>{{ unit }}</small>{% endif %} ~ {% if cost.section_end %}{{ '{:,.0f}'.format(cost.section_end) }}<small>{{ unit }}</small>{% endif %}</td>
+										<td>{{ '{:,.0f}'.format(cost.cost) }}원</td>
+									</tr>
+								{% endfor %}
+								</tbody>
+							</table>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+
+	<div class="modal fade" tabindex="-1" role="dialog" id="modalQuestion">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div class="modal-title">상품 문의</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div>
+						<div class="d-flex align-items-center">
+							<div style="width:48px;"><img src="{% if photos %}{{ photos[0].uri }}{% endif %}" class="img-1by1 rounded-1" alt="Product"></div>
+							<div class="ps-2">
+								<h6 class="widget-product-title">
+									{{ product.name }}
+								</h6>
+							</div>
+						</div>
+					</div>
+					<div class="mt-3">
+						<label class="form-label" for="qna-subject">제목 <strong class='text-danger'>*</strong></label>
+						<input class="form-control" type="text" id="qna-subject" name="title" onkeyup="textLimit(this,20);" placeholder="최대 20자 까지 작성 할 수 있습니다." required>
+						<div class="invalid-feedback">제목을 입력해 주세요.</div>
+					</div>
+					<div class="mt-2">
+						<label class="form-label" for="qna-message">내용 <strong class='text-danger'>*</strong></label>
+						<textarea class="form-control" rows="6" required id="qna-message" name="contents" onkeyup="textLimit(this,2000);" placeholder="최대 2000자 까지 작성 할 수 있습니다."></textarea>
+						<div class="invalid-feedback">내용을 입력해 주세요.</div>
+					</div>
+					<div class="pt-2 d-flex justify-content-end">
+						<button class="btn btn-primary" type="button" onclick="question()">문의 하기</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="d-none" id="optTemplate">
+		<div class="d-flex justify-content-between align-items-center">
+			<h6 class="mb-0">$optionName$</h6>
+			<a class="text-muted" style="cursor: pointer" onclick="delOption(this)"><i class="ci-close small"></i></a>
+		</div>
+		<div class="mb-3 d-flex justify-content-between align-items-center">
+			<div class="input-group input-group-sm d-flex" style="width:128px;">
+				<button class="btn btn-outline-dark" type="button" onclick="minus(this, $selling_price$)"><i class="fa-solid fa-minus"></i></button>
+				<input class="form-control text-center w-25" type="text" name="cnt" value="1" onkeyup="valueChange(this, $selling_price$)">
+				<button class="btn btn-outline-dark" type="button" onclick="plus(this, $selling_price$)"><i class="fa-solid fa-plus"></i></button>
+			</div>
+			<span class="h3 fw-normal me-1 pt-3"><span id="prdPrice">$selling_price_comma$</span>원</span>
+			<input type="hidden" value="$option_id$" name="id">
+			<input type="hidden" value="$selling_price$" name="price">
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    $.fn.select2.amd.define('select2/i18n/ko', [], function () {
+      // Korean translation object
+      return {
+        errorLoading: function () {
+          return '데이터를 불러올 수 없습니다.';
+        },
+        inputTooLong: function (args) {
+          var overChars = args.input.length - args.maximum;
+          var message = '너무 깁니다. ' + overChars + ' 글자 지워주세요.';
+          return message;
+        },
+        inputTooShort: function (args) {
+          var remainingChars = args.minimum - args.input.length;
+          var message = '너무 짧습니다. ' + remainingChars + ' 글자 이상 입력해주세요.';
+          return message;
+        },
+        loadingMore: function () {
+          return '데이터를 불러오는 중입니다...';
+        },
+        maximumSelected: function (args) {
+          var message = args.maximum + '개까지만 선택 가능합니다.';
+          return message;
+        },
+        noResults: function () {
+          return '상위 옵션을 선택해주세요.';
+        },
+        searching: function () {
+          return '검색 중입니다...';
+        },
+      };
+    });
+
+    $(document).ready(function () {
+      const sel2 = $('.option-select2');
+      if (sel2.length) {
+        sel2.select2({
+          minimumResultsForSearch: Infinity,
+          language: 'ko',
+        });
+        sel2.on('select2:select', function (e) {
+          switch ($(this).attr('id')) {
+            case 'option1':
+              $("#option2 option").remove();
+            case 'option2':
+              $("#option3 option").remove();
+            case 'option3':
+              $("#option4 option").remove();
+            case 'option4':
+              $("#option5 option").remove();
+          }
+          if ($(this).hasClass("last-option")) {
+            $('.option-select2').val(null).trigger('change');
+            selectOption(e.params.data);
+          } else {
+            get_option($(this), true);
+          }
+        });
+        sel2.on('select2:opening', function (e) {
+
+        });
+        get_option($("#option1"));
+      }
+    });
+
+    function selectOption(value) {
+      option(value.id);
+    }
+
+    function plus(obj, price) {
+      let selected_cnt = 0;
+      let options = document.querySelectorAll(".option-frame");
+      for (let i = 0; i < options.length; i++) {
+        let cnt = options[i].querySelector("input[name=cnt]").value;
+        selected_cnt += Number(cnt);
+      }
+      if (selected_cnt >= {% if product.max_purchase_limit %}{{ product.max_purchase_limit }}{% else %}999{% endif %}) {
+        alert("최대 구매수량은 {% if product.max_purchase_limit %}{{ product.max_purchase_limit }}{% else %}999{% endif %}개 입니다");
+        return;
+      }
+
+      const max_cnt = {% if product.max_purchase_limit %}{{ product.max_purchase_limit }}{% else %}999{% endif %};
+      const input = obj.closest("div").querySelector("input");
+      let cnt = input.value;
+      if (cnt < max_cnt) {
+        input.value = Number(cnt) + 1;
+        cntChange(Number(cnt) + 1, price, obj);
+      } else {
+        alert("최대 구매수량은 {% if product.max_purchase_limit %}{{ product.max_purchase_limit }}{% else %}999{% endif %}개 입니다");
+      }
+    }
+
+    function minus(obj, price) {
+      const input = obj.closest("div").querySelector("input");
+      let cnt = input.value;
+      if (Number(cnt) > 1) {
+        input.value = Number(cnt) - 1;
+        cntChange(Number(cnt) - 1, price, obj);
+      }
+    }
+
+    function valueChange(obj, price) {
+      if (/^[0-9]+$/g.test(obj.value)) {
+        const max_cnt = 100;
+        let cnt = Number(obj.value);
+        if (max_cnt < cnt) {
+          obj.value = max_cnt;
+          cnt = max_cnt;
+        }
+        cntChange(cnt, price, obj);
+      } else {
+        obj.value = 1;
+        cntChange(1, price, obj);
+      }
+    }
+
+    function cntChange(cnt, price, obj) {
+      if (obj) {
+        const prdPrice = obj.closest(".option-frame").querySelector("#prdPrice");
+        prdPrice.innerText = (cnt * price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      let totalAmount = 0;
+      const optionFrames = document.querySelectorAll(".option-frame");
+      for (let i = 0; i < optionFrames.length; i++) {
+        let cnt = optionFrames[i].querySelector("input[name=cnt]").value;
+        let price = optionFrames[i].querySelector("input[name=price]").value;
+
+        totalAmount += (cnt * price);
+      }
+      document.querySelector("#total").innerText = (totalAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function add_cart() {
+      let data = [];
+
+      let options = document.querySelectorAll(".option-frame");
+      for (let i = 0; i < options.length; i++) {
+        let cnt = options[i].querySelector("input[name=cnt]").value;
+        let id = options[i].querySelector("input[name=id]").value;
+        data.push({
+          product_option_id: id,
+          count: cnt,
+        })
+      }
+
+      if (data.length === 0) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '옵션을 선택해주세요.',
+          showConfirmButton: false,
+          timer: 1500,
+        })
+        return;
+      }
+
+      axios.post("/api/cart?store_code={{ request.path_params.store_code }}", data, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '장바구니에 담았습니다.',
+          showCancelButton: true,
+          confirmButtonText: "장바구니로 이동",
+          cancelButtonText: "계속 쇼핑하기",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            {% if product.type[0] == "D" %}
+              window.location.href = "/{{ request.path_params.store_code }}/order/cart";
+            {% else %}
+              window.location.href = "/{{ request.path_params.store_code }}/order/cart-u";
+            {% endif %}
+          }
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          if (error.response.data.code === "DATA0001") {
+            swal.fire({
+              position: 'center',
+              icon: 'warning',
+              title: '장바구니에 다른 상품이 담겨 있습니다.\n삭제 후 담으시겠습니까?.',
+              showCancelButton: true,
+              confirmButtonText: "확인",
+              cancelButtonText: "취소",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                data.forEach(function (item) {
+                  item["force"] = "Y";
+                });
+                axios.post("/api/cart?store_code={{ request.path_params.store_code }}", data, {
+                  headers: {'Content-Type': 'application/json'}
+                }).then(function (response) {
+                  swal.fire({
+                    position: 'center',
+                    icon: 'success',
+                    title: '장바구니에 담았습니다.',
+                    showCancelButton: true,
+                    confirmButtonText: "장바구니로 이동",
+                    cancelButtonText: "계속 쇼핑하기",
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      {% if product.type[0] == "D" %}
+                        window.location.href = "/{{ request.path_params.store_code }}/order/cart";
+                      {% else %}
+                        window.location.href = "/{{ request.path_params.store_code }}/order/cart-u";
+                      {% endif %}
+                    }
+                  })
+                }).catch(function (error) {
+                  if (error.response) {
+                    alert(error.response.data.msg);
+                  }
+                });
+              }
+            })
+          } else {
+            alert(error.response.data.msg);
+          }
+        }
+      });
+    }
+
+    function order() {
+      let prdData = [];
+      let selected_cnt = 0;
+      let options = document.querySelectorAll(".option-frame");
+      for (let i = 0; i < options.length; i++) {
+        let cnt = options[i].querySelector("input[name=cnt]").value;
+        let id = options[i].querySelector("input[name=id]").value;
+        prdData.push({
+          product_option_id: id,
+          count: cnt,
+        })
+        selected_cnt += Number(cnt);
+      }
+
+      if (prdData.length === 0) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '옵션을 선택해주세요.',
+          showConfirmButton: false,
+          timer: 1500,
+        })
+        return;
+      }
+      {% if product.min_purchase_limit %}
+        if (selected_cnt < {{ product.min_purchase_limit }}) {
+          alert("최소 구매수량은 {{ product.min_purchase_limit }}개 입니다.");
+          return;
+        }
+      {% endif %}
+
+      let data = {
+        store_code: "{{ request.path_params.store_code }}",
+        type: "direct",
+        products: prdData
+      }
+
+      axios.post("/api/order/sheet", data, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        window.location.href = "/{{ request.path_params.store_code }}/order/sheet/" + response.data.id;
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function wish(obj, productId) {
+      let cl = obj.querySelector("i").classList;
+      let action = '';
+
+      for (const el of cl) {
+        if (el === "ci-heart") {
+          action = 'add';
+        } else {
+          action = 'del';
+        }
+      }
+
+      if (action === 'add') {
+        axios.post("/api/wish/" + productId + "?store_code={{ request.path_params.store_code }}", {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          $(".btn-wishlist i").removeClass("ci-heart").addClass("ci-heart-filled text-primary");
+          Swal.fire({
+            icon: 'success',
+            title: '관심상품이 등록되었습니다.',
+            showConfirmButton: false,
+            timer: 1500
+          })
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+      } else {
+        axios.delete("/api/wish/" + productId + "?store_code={{ request.path_params.store_code }}", {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          $(".btn-wishlist i").removeClass("ci-heart-filled text-primary").addClass("ci-heart");
+          Swal.fire({
+            icon: 'success',
+            title: '관심 상품이 삭제 되었습니다.',
+            showConfirmButton: false,
+            timer: 1500
+          })
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+      }
+    }
+
+    function get_option(obj, isSelect) {
+      if (!obj) {
+        return;
+      }
+
+      let selected_option = "";
+      let options = $('.option-select2')
+      let option_list = [];
+      for (const option of options) {
+        if ($(option).val()) {
+          option_list.push($(option).val());
+        }
+      }
+      selected_option = option_list.join(',');
+
+      switch ($(obj).attr('id')) {
+        case 'option1':
+          if (isSelect) {
+            obj = $("#option2");
+            $("#option2 option").remove();
+          }
+          break;
+        case 'option2':
+          if (isSelect) {
+            obj = $("#option3");
+            $("#option3 option").remove();
+          }
+          break;
+        case 'option3':
+          if (isSelect) {
+            obj = $("#option4");
+            $("#option4 option").remove();
+          }
+          break;
+        case 'option4':
+          if (isSelect) {
+            obj = $("#option5");
+            $("#option5 option").remove();
+          }
+          break;
+      }
+
+
+      axios.get("/api/product/option?store_code={{ request.path_params.store_code }}&product_id={{ request.path_params.product_id }}&selected=" + selected_option, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        const data = response.data;
+        for (const option of data) {
+          let newOption = new Option('', '', false, false);
+          $(obj).append(newOption);
+          if (option.option_id) {
+            if (option.is_sold_out) {
+              newOption = new Option(`품절 - ${option.title} ${option.add_text}`, option.option_id, false, false);
+              newOption.disabled = true;
+            } else {
+              newOption = new Option(`${option.title} ${option.add_text}`, option.option_id, false, false);
+            }
+          } else {
+            newOption = new Option(option.title, option.title, false, false);
+          }
+          $(obj).append(newOption);
+        }
+        $(obj).trigger('change');
+
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+          switch (error.response.data.code) {
+            case "AUTH0004":
+            case "AUTH0005":
+              window.location.href = '/{{ request.path_params.store_code }}';
+              break
+          }
+        }
+      });
+    }
+
+    function option(optionId) {
+      let selected_cnt = 0;
+      let options = document.querySelectorAll(".option-frame");
+      for (let i = 0; i < options.length; i++) {
+        let id = options[i].querySelector("input[name=id]").value;
+        if (optionId === id) {
+          swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: '이미 선택한 옵션입니다.',
+            showConfirmButton: false,
+            timer: 1500,
+          })
+          return;
+        }
+        let cnt = options[i].querySelector("input[name=cnt]").value;
+        selected_cnt += Number(cnt);
+      }
+      if (selected_cnt >= {% if product.max_purchase_limit %}{{ product.max_purchase_limit }}{% else %}999{% endif %}) {
+        alert("최대 구매수량은 {% if product.max_purchase_limit %}{{ product.max_purchase_limit }}{% else %}999{% endif %}개 입니다");
+        return;
+      }
+
+      axios.get("/api/product/option/" + optionId + "?store_code={{ request.path_params.store_code }}", {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        const data = response.data;
+
+        const optionList = document.querySelector(".option-list");
+        let optionEl = document.createElement("div");
+        optionEl.classList.add("option-frame");
+
+        let option_text_list = [];
+        if (data.option_1) {
+          option_text_list.push(data.option_1);
+        }
+        if (data.option_2) {
+          option_text_list.push(data.option_2);
+        }
+        if (data.option_3) {
+          option_text_list.push(data.option_3);
+        }
+        if (data.option_4) {
+          option_text_list.push(data.option_4);
+        }
+        if (data.option_5) {
+          option_text_list.push(data.option_5);
+        }
+        let selected_option = option_text_list.join('/');
+
+        let optionHtml = document.getElementById("optTemplate").innerHTML;
+        optionHtml = optionHtml.replace("$option_id$", data.id);
+        optionHtml = optionHtml.replace("$optionName$", selected_option);
+        optionHtml = optionHtml.replaceAll("$selling_price_comma$", data.selling_price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+        optionHtml = optionHtml.replaceAll("$selling_price$", data.selling_price);
+        optionEl.innerHTML = optionHtml;
+        optionList.appendChild(optionEl);
+
+        cntChange(null, null, null);
+
+        $("#option2 option").remove();
+        $("#option3 option").remove();
+        $("#option4 option").remove();
+        $("#option5 option").remove();
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function delOption(obj) {
+      const frame = obj.closest(".option-frame")
+      frame.remove();
+      cntChange(null, null, null);
+    }
+
+    function question() {
+      let title = document.getElementById("qna-subject").value;
+      let contents = document.getElementById("qna-message").value;
+
+      if (title && contents) {
+        let data = {
+          title: title,
+          contents: contents,
+          store_code: "{{ request.path_params.store_code }}",
+        }
+        axios.post("/api/product/{{ product.id }}/qna", data, {
+          headers: {'Content-Type': 'application/json'}
+        }).then(function (response) {
+          swal.fire({
+            position: 'center',
+            icon: 'success',
+            title: '문의가 등록 되었습니다.',
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            let qnaModal = document.getElementById("modalQuestion");
+            let modal = bootstrap.Modal.getInstance(qnaModal);
+            modal.hide();
+
+            document.getElementById("qna-subject").value = "";
+            document.getElementById("qna-message").value = "";
+            location.href = "/{{ request.path_params.store_code }}/board/qna?tab=product";
+          })
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+      } else {
+        if(!title) {
+          alert("제목을 입력 해주세요.");
+        }
+        if(!contents) {
+          alert("내용을 입력 해주세요.");
+        }
+      }
+    }
+
+    function openOption() {
+      $(".option_select_wrap").addClass("opened");
+      $(".btn_closed").removeClass("d-flex").addClass("d-none");
+      $(".btn_opened").removeClass("d-none").addClass("d-flex");
+      $("html, body").css("overflow","hidden");
+    }
+
+    function closeOption() {
+      $(".option_select_wrap").removeClass("opened");
+      $(".btn_closed").removeClass("d-none").addClass("d-flex");
+      $(".btn_opened").removeClass("d-flex").addClass("d-none");
+      $("html, body").css("overflow","unset");
+    }
+
+    document.addEventListener("DOMContentLoaded", function(){
+      let descr_box = document.getElementById("descr_box");
+      let read_more_area = document.getElementById("read_more_area");
+      let descr_box_height = descr_box.offsetHeight;
+      let minimum_height = window.innerHeight * 0.6;
+
+      if (descr_box_height > minimum_height) {
+        descr_box.style.height = "60vh";
+        read_more_area.classList.remove("d-none");
+        read_more_area.classList.add("d-block");
+      } else {
+        read_more_area.classList.remove("d-block");
+        read_more_area.classList.add("d-none");
+      }
+    });
+
+    function descrOpen(obj) {
+      if ($("#descr_box").hasClass("closed")) {
+        $("#descr_box").removeClass("closed").css("height", "fit-content");
+        $(obj).html("상세정보 접기 &nbsp;<i class='fas fa-chevron-up'></i>");
+      } else {
+        $("html, body").animate({scrollTop: $("#descr_box").offset().top}, 50);
+        $("#descr_box").addClass("closed").css("height", "60vh");
+        $(obj).html("자세히 보기 &nbsp;<i class='fas fa-chevron-down'></i>");
+      }
+    }
+
+    function openReview() {
+      $(".tab-pane.show.active").removeClass("show active");
+      $("#review.tab-pane").addClass("show active");
+      $(".nav-tabs .nav-item .nav-link.active").removeClass("active");
+      $(".nav-link[href='#review']").addClass("active");
+
+      $("html, body").animate({scrollTop: $(".nav-link[href='#review']").position().top - $("header").height()}, 0);
+    }  
+	</script>
+{% endblock %}
+

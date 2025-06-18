@@ -1,0 +1,60 @@
+<section class="container py-sm-3 py-2 my-3" {% if layout['id'] %}id="Component_{{ layout.id }}"{% endif %} {% if layout['background'] %}style="background-image: url('{{ layout['background'] }}'); background-size: 100% 100%;"{% endif %}>
+	<div class="row mx-n1">
+		{% for item in layout["columns"] %}
+			{% if item|component_item_visible %}
+				{% if item.type == 'normal' %}
+					<div class="col-md-4 col-6 mb-grid-gutter px-1">
+						{% include 'element-normal-4.html' %}
+					</div>
+				{% elif item.type == 'video' %}
+					<div class="col-md-4 col-6 mb-grid-gutter px-1">
+						{% include 'element-video.html' %}
+					</div>
+				{% elif item.type == 'video-vimeo' %}
+					<div class="col-md-4 col-6 mb-grid-gutter px-1">
+						{% include 'element-video-vimeo.html' %}
+					</div>
+				{% elif item.type == 'shop' %}
+					<div class="col-md-4 col-6 mb-grid-gutter px-1 box-img-1by1">
+						{% include 'element-shop.html' %}
+					</div>
+				{% elif item.type == 'product' %}
+						{% if item.view_type == 'list' %}
+							<div class="col-6 mb-3 px-1 box-img-1by1">
+								{#{% include 'element-product-list.html' %}#}
+								<element-product-list
+												store_code="{{ store.code }}"
+												store_type="{{ store.type }}"
+												:prod="{{ item }}"
+												user="{{ user.id }}"
+												current_datetime="{{ current_datetime }}"
+												current_time="{{ current_time }}"
+												exclude_menu="{{ exclude_menu }}"
+								/>
+							</div>
+						{% else %}
+							<div class="col-md-4 col-6 mb-grid-gutter px-1 box-img-1by1">
+								{#{% include 'element-product.html' %}#}
+								<element-product
+												store_code="{{ store.code }}"
+												store_type="{{ store.type }}"
+												:prod="{{ item }}"
+												user="{{ user.id }}"
+												current_datetime="{{ current_datetime }}"
+												current_time="{{ current_time }}"
+												exclude_menu="{{ exclude_menu }}"
+								/>
+							</div>
+						{% endif %}
+				{% elif item.type == 'text' %}
+					<div class="col-md-4 col-6 px-1 pb-2 text-box">
+						{% include 'element-text.html' %}
+					</div>
+				{% else %}
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+	</div>
+
+	{% include 'element-link.html' %}
+</section>

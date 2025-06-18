@@ -1,0 +1,184 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}주문내역{% endblock %}
+{% block menu_title_breadcrumb %}주문내역{% endblock %}
+{% block active_ecoupon %}active{% endblock %}
+{% block account_content %}
+	<div class="row mx-n1">
+		<div class="col-sm-10 mx-auto mb-4">
+			<div class="position-relative mx-auto rounded-3" style="max-width:210px; border:1px solid #f0f0f0;">
+				<img src="{{ prd.product_thumbnail }}" class="img-1by1 rounded-3">
+			</div>
+			<div class="text-center mt-3 mb-3">
+				<div class="fs-xs text-muted">{{ prd.product_option.product.brands[0].name }}</div>
+				<div class="fw-bold">{{ prd.product_name }}</div>
+			</div>			
+		</div>
+
+		{# <div class="col-sm-10 mx-auto mb-5">
+			<div class="position-relative mx-auto" style="max-width:210px;">
+				<img src="{{ prd.product_thumbnail }}" class="img-1by1 rounded-3 {% if (prd.status == 'CP' and prd.balance == 0) or prd.status == 'EXP' %}img-gray{% endif %}">
+					{% if prd.status == 'CP' and prd.balance == 0 %}
+						<div class="img-disable"><span class="fw-bold fs-3">사용완료</span></div>
+					{% elif prd.status == 'EXP' %}
+						<div class="img-disable"><span class="fw-bold fs-3">기한만료</span></div>
+					{% endif %}				
+			</div>
+			<div class="text-center mt-3 mb-3">
+				<div class="fs-xs text-muted">{{ prd.product_option.product.brands[0].name }}</div>
+				<div class="fw-bold">{{ prd.product_name }}</div>
+			</div>
+			{% if prd.ecoupon and (prd.status == 'PD' or prd.balance) %}
+			<!-- 사용가능 -->
+			<div class="position-relative mx-auto py-3 border rounded" style="max-width:300px;">
+				<div class="d-lg-none d-block position-absolute top-0 end-0 text-end">
+					<button type="button" onclick="modalZoom('{{ prd.ecoupon.pin_code }}');" class="btn py-0 px-2 m-0 fs-lg"><i class="fa-solid fa-circle-plus"></i></button>
+				</div>
+				<div class="text-center"><svg id="barCode" onload="makeBarcode(this, '{{ prd.ecoupon.pin_code }}', 80);"></svg></div>
+				<div class="text-center">
+					<span class="fs-sm">{{ prd.ecoupon.pin_code }}</span>
+					<a href="javascript:;" onclick="copyClipboard('{{ prd.ecoupon.pin_code }}');" class="fs-sm ms-1 text-muted"><i class="fa-regular fa-copy"></i></a>
+				</div>
+			</div>
+			{% elif prd.status == 'CP' or prd.status == 'EXP' %}
+			<!-- 사용완료 / 기간만료 -->
+			<div class="mx-auto bg-secondary border fs-sm text-center word-keep-all p-3 mt-3" style="max-width:310px;">
+				{% if prd.status == 'CP'%}
+					<span>사용완료일 : {{ (prd.complete_date|string)[:10] }}</span>
+				{% elif prd.status == 'EXP'  %}
+					<span>기한이 만료된 쿠폰은 사용이 불가합니다.</span>
+				{% endif %}
+			</div>
+			{% endif %}
+		</div> #}
+
+		<div class="col-sm-10 mx-auto p-0">
+			<ul class="nav nav-tabs nav-fill" role="tablist">
+				<li class="nav-item"><a href="#useInfo" class="nav-link px-2 active" data-bs-toggle="tab" role="tab">사용정보</a></li>
+				<li class="nav-item"><a href="#productInfo" class="nav-link px-2" data-bs-toggle="tab" role="tab">상세정보</a></li>
+			</ul>
+
+			<div class="tab-content">
+				<div id="useInfo" class="tab-pane fade show active" role="tabpanel">
+					<div class="container">
+						<h5>사용정보</h5>
+						<div class="table-responsive">
+							<table class="table fs-sm">
+								<tr>
+									<td style="width:100px;">유효기간</td>
+									<td class="word-keep-all">{{ (prd.use_end_date|string)[:10] }} 까지</td>
+								</tr>
+								<tr>
+									<td>주문번호</td>
+									<td>{{ prd.order.id }}</td>
+								</tr>
+								<tr>
+									<td>주문일</td>
+									<td>{{ (prd.order.reg_date|string)[:10] }}</td>
+								</tr>							
+								<tr>
+									<td>이용가능매장</td>
+									<td class="pre word-keep-all">{{ prd.product.use_place }}</td>
+								</tr>
+								<tr>
+									<td class="align-middle py-2">고객문의</td>
+									<td class="py-2"><a href="/{{ store.code }}/board/qna/add" class="btn border fs-xs p-1">문의하기</a></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				
+				<div id="productInfo" class="tab-pane fade" role="tabpanel">
+					<div class="container">
+						<h5>상품 정보 고시</h5>
+						<div class="table-responsive">
+							<table class="table table-bordered fs-sm">
+								<tbody>
+									{% for info in notice_info %}
+                    <tr>
+                      <td style="width: 40%; background-color: #0d0a0a10">{{ info.item }}</td>
+                      <td style="width: 60%">{{ info.contents }}</td>
+                    </tr>
+                  {% endfor %}
+								</tbody>
+							</table>
+						</div>
+						{% if common_info %}
+							<div class="py-3 mb-3 border-bottom" style="word-break: break-all;">
+							{{ common_info.contents|safe }}
+							</div>
+          	{% endif %}
+
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-sm-10 mx-auto text-end">
+			<a href="/{{ store.code }}/board/qna/add?cate=cancel&order_id={{ prd.order.id }}" class="btn btn-sm border">주문취소</a>
+		</div>
+	</div>
+
+	<div id="modalZoom" class="modal fade" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content" style="height: calc((var(--vh, 1vh) * 100) - (var(--cz-modal-margin) * 2));">
+				<div class="d-flex justify-content-center align-items-center flex-column h-100" style="transform: rotate(90deg);">
+					<svg id="modalBarCode"></svg>
+					<div id="modalBarCodeText" class="text-center"></div>
+				</div>
+				<div class="position-absolute top-0 end-0 p-4">
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+		function setScreenSize() {
+			let vh = window.innerHeight * 0.01;
+			document.documentElement.style.setProperty('--vh', `${vh}px`);
+		}
+
+		$(document).ready(function () {
+			setScreenSize();
+		});
+		
+		
+		function makeBarcode(obj, code, maxH) {
+			JsBarcode(obj, code, {
+				format: "code128",
+				width: 2,
+				displayValue: false
+			});
+			if (maxH) {
+				obj.style.maxHeight = maxH + "px";
+			}
+		}
+
+    function copyClipboard(text) {
+      let dump = document.createElement("input");
+      document.body.appendChild(dump).classList.add("opacity-0");
+      dump.value = text.replace(/ /g, '');
+      dump.select();
+      document.execCommand("copy");
+      document.body.removeChild(dump);
+      swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: '클립보드에 복사되었습니다.',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    }
+
+		function modalZoom(code) {
+			makeBarcode("#modalBarCode", code, "");
+			document.getElementById("modalBarCodeText").innerText = code;
+
+      const modal = new bootstrap.Modal(document.querySelector('#modalZoom'));
+      modal.show();
+		}
+	</script>
+{% endblock %}

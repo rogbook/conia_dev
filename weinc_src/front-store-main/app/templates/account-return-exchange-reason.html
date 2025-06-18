@@ -1,0 +1,59 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}교환,반품 신청{% endblock %}
+{% block menu_title_breadcrumb %}교환,반품 신청{% endblock %}
+{% block active_order %}active{% endblock %}
+{% block account_content %}
+	<div class="fs-md mb-4">
+		<h5 class="card-title mb-3">신청 유형</h5>
+		<div class="mb-5">
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" id="ex-radio-5" name="request_type" value="return" onchange="next_able()">
+				<label class="form-check-label" for="ex-radio-5">반품</label>
+			</div>        
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" id="ex-radio-4" name="request_type" value="exchange" onchange="next_able()">
+				<label class="form-check-label" for="ex-radio-4">교환</label>
+			</div>
+		</div>
+		<h5 class="card-title mb-3">사유를 작성해 주세요</h5>
+		<textarea class="form-control mb-3" id="reason" name="reason" rows="5" onkeyup="next_able()"></textarea>
+		<button class="btn btn-primary" id="nextStep" type="button" onclick="request()" disabled>신청 하기</button>
+	</div>
+{% endblock %}
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+      function next_able() {
+          document.querySelector("#nextStep").disabled = !($("input[name=request_type]:checked").val() && $("#reason").val());
+      }
+
+      function request() {
+          let request_type = $("input[name=request_type]:checked").val();
+          let request_reason = $("#reason").val();
+
+          axios.post("/api/order/request_re", {
+              order_id: "{{ request.path_params.order_id }}",
+              order_products: "{{ order_product_ids }}",
+              request_type: request_type,
+              request_reason: request_reason,
+          }, {
+              headers: {'Content-Type': 'application/json'}
+          }).then(function (response) {
+              swal.fire({
+                  position: 'center',
+                  icon: 'success',
+                  title: '신청 되었습니다.',
+                  showConfirmButton: false,
+                  timer: 1500,
+              }).then(() => {
+                  window.location.href = "/{{ request.path_params.store_code }}/order/history";
+              })
+          }).catch(function (error) {
+              console.log(error);
+              if (error.response.data.msg) {
+                  alert(error.response.data.msg);
+              }
+          });
+      }
+	</script>
+{% endblock %}

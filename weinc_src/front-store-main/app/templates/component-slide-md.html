@@ -1,0 +1,51 @@
+<section class="container mb-4" {% if layout['id'] %}id="Component_{{ layout.id }}"{% endif %} {% if layout['background'] %}style="background-image: url('{{ layout['background'] }}'); background-size: 100% 100%"{% endif %}>
+	<div class="slide-md swiper swiper_number">
+		<div class="swiper-wrapper">
+			{% for item in layout["slides"] %}
+				{% if item|component_item_visible %}
+					<div class="swiper-slide mx-auto">
+					{% if item.full_link %}
+						<a href="{{ item.full_link }}" class="conia-el-link">
+							<!-- <picture class="flex-shrink-0 m-auto w-100">
+								<source media="(min-width:992px)" srcset="{{ item.img }}">
+								<source media="(max-width:991px)" srcset="{{ item.img_m }}">
+								{% if item.img %}
+									<img src="{{ item.img }}" class="w-100">
+								{% elif item.img_m %}
+									<img src="{{ item.img_m }}" class="w-100">
+								{% endif %}
+							</picture> -->
+							<img src="{{ item.img_m }}" class="w-100">
+						</a>
+					{% elif item.link %}
+						<a href="/{{ request.path_params.store_code }}{{ item.link }}">
+							<!-- <picture class="flex-shrink-0 m-auto w-100">
+								<source media="(min-width:992px)" srcset="{{ item.img }}">
+								<source media="(max-width:991px)" srcset="{{ item.img_m }}">
+								{% if item.img %}
+									<img src="{{ item.img }}" class="w-100">
+								{% elif item.img_m %}
+									<img src="{{ item.img_m }}" class="w-100">
+								{% endif %}
+							</picture> -->
+							<img src="{{ item.img_m }}" class="w-100">
+						</a>
+					{% else %}
+						<!-- <picture class="flex-shrink-0 m-auto w-100">
+							<source media="(min-width:992px)" srcset="{{ item.img }}">
+							<source media="(max-width:991px)" srcset="{{ item.img_m }}">
+							{% if item.img %}
+								<img src="{{ item.img }}" class="w-100">
+							{% elif item.img_m %}
+								<img src="{{ item.img_m }}" class="w-100">
+							{% endif %}
+						</picture> -->
+						<img src="{{ item.img_m }}" class="w-100">
+					{% endif %}
+					</div>
+				{% endif %}				
+			{% endfor %}
+		</div>
+		<div class="swiper-pagination"></div>
+	</div>
+</section>

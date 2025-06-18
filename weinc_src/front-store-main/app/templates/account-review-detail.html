@@ -1,0 +1,220 @@
+{% extends 'account-base.html' %}
+{% block menu_title %}상품 리뷰{% endblock %}
+{% block menu_title_breadcrumb %}상품 리뷰{% endblock %}
+{% block active_review %}active{% endblock %}
+{% block account_content %}
+	<div class="fs-md mb-4">
+		<div class="row gx-4 gy-3 justify-content-center">
+			<div class="col-12 d-flex align-items-center">
+				<a class="me-2" href="/{{ store.code }}/product/{{ review.product.id }}"><img src="{{ review.product.photos[0].uri }}" class="img-1by1 rounded-1" style="width:80px;" alt="Product"></a>
+				<h3 class="product-title fs-base mb-2 fw-bold word-keep-all"><a href="/{{ store.code }}/product/{{ review.product.id }}">{{ review.product.name }}</a></h3>
+			</div>
+			<div class="col-12">
+				<label class="form-label" for="review-message">리뷰를 남겨주세요 <strong class='text-danger'>*</strong></label>
+				<textarea class="form-control" rows="6" id="review-message" name="contents" maxlength="500" placeholder="최대 500자 까지 작성 할 수 있습니다.">{{ review.contents }}</textarea>
+			</div>
+			<div class="col-12">
+				<div class="d-flex gap-2 flex-wrap mt-2" id="review_photos">
+					{% if review.photos %}
+						{% for photo in review.photos %}
+							<div class="file-drop-area d-flex align-items-center justify-content-center rounded-2">
+								<div class="file_preview_box" style="cursor:auto;">
+									<img src="{{ photo.uri }}">
+									<button type="button" class="btn btn-danger p-1 position-absolute" onclick="delImg('{{ review.id }}', 1)"><i class="ci-close"></i></button>
+								</div>
+								<div class="file_upload_box" style="display: none;">
+									<div class="file-drop-icon ci-cloud-upload mt-2"></div>
+									<input type="file" name="files" id="files_1" class="file-drop-input">
+								</div>
+							</div>
+						{% endfor %}
+					{% else %}
+						<div class="file-drop-area d-flex align-items-center justify-content-center rounded-2">
+							<div class="file_upload_box">
+								<div class="file-drop-icon ci-cloud-upload mt-2"></div>
+								<input type="file" name="files" id="files_1" class="file-drop-input">
+							</div>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+			<div class="row mt-5">
+        <div class="col-6 pe-1"><button class="btn btn-primary w-100" type="button" onclick="review()">수정</button></div>
+        <div class="col-6 ps-1"><button class="btn btn-outline-primary w-100" type="button" onclick="remove('{{ review.id }}')">삭제</button></div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block script %}
+	{{ super() }}
+	<script type="text/javascript">
+    function delImg(reviewId, imgN) {
+      Swal.fire({
+        title: '이미지를 삭제 하시겠습니까?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: "#fe696a",
+        confirmButtonText: '예',
+        cancelButtonText: '취소'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.querySelector(".file-drop-area:nth-child(" + imgN + ") .file_preview_box").style.display = "none";
+          document.querySelector(".file-drop-area:nth-child(" + imgN + ") .file_upload_box").style.display = "block";
+          axios.delete("/api/product/review/" + reviewId + "/photo", {
+            headers: {'Content-Type': 'application/json'}
+          }).then(function (response) {
+            Swal.fire({
+              icon: 'success',
+              title: '이미지가 삭제 되었습니다.',
+              showConfirmButton: false,
+              timer: 1500
+            }).then(() => {
+              window.location.reload();
+            })
+          }).catch(function (error) {
+            console.log(error);
+            if (error.response) {
+              alert(error.response.data.msg);
+            }
+          });
+        }
+      });
+    }
+
+    function addReviewPhoto() {
+      const formData = new FormData();
+      if (document.getElementById("files_1")) {
+        if (document.getElementById("files_1").value) {
+          const max_size = 1024 * 1024 * 10;
+          if (document.getElementById("files_1").files[0].size > max_size) {
+            swal.fire("파일 용량은 10MB 이하여야 합니다.");
+            return;
+          }
+          formData.append("files", document.getElementById("files_1").files[0]);
+        }
+      }
+
+      axios.post("/api/product/review/{{ review.id }}/photo", formData, {
+        headers: {'Content-Type': 'multipart/form-data'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '이미지가 등록 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          //window.location.reload();
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    $(document).ready(function () {
+      var fileArea = document.querySelectorAll('.file-drop-area');
+      var _loop2 = function _loop2(i) {
+        var input = fileArea[i].querySelector('.file-drop-input'),
+            icon = fileArea[i].querySelector('.file-drop-icon');
+        input.addEventListener('change', function () {
+          console.log(input.files);
+          if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              var fileData = e.target.result;
+              var fileName = input.files[0].name;
+              if (fileData.startsWith('data:image')) {
+                var image = new Image();
+                image.src = fileData;
+                image.onload = function () {
+                  icon.className = 'img-preview-box';
+                  icon.innerHTML = '<img src="' + image.src + '" alt="' + fileName + '">';
+                };
+              }
+            };
+            reader.readAsDataURL(input.files[0]);
+            addReviewPhoto();
+          }
+        });
+      };
+      for (var i = 0; i < fileArea.length; i++) {
+        _loop2(i);
+      }
+    });
+
+    function review() {
+      if (!document.getElementById("review-message").value) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '내용을 입력하세요.',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        return;
+      }
+
+      let data = {
+        contents: document.getElementById("review-message").value
+      }
+
+      axios.put("/api/product/review/{{ review.id }}", data, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '리뷰가 수정 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          window.location.href = "/{{ request.path_params.store_code }}/board/review";
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          if (error.response.data.code === 'DATA0003') {
+            alert('수정된 내용이 없습니다.');
+					} else {
+            alert(error.response.data.msg);
+          }
+        }
+      });
+    }
+
+    function remove(reviewId) {
+      Swal.fire({
+        title: "리뷰를 삭제하시겠습니까?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#fe696a",
+        confirmButtonText: "예",
+        cancelButtonText: "취소"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.delete("/api/product/review/" + reviewId, {
+            headers: {'Content-Type': 'application/json'}
+          }).then(function (response) {
+            Swal.fire({
+              icon: 'success',
+              title: '리뷰가 삭제 되었습니다.',
+              showConfirmButton: false,
+              timer: 1500
+            }).then(() => {
+              window.location.href = "/{{ request.path_params.store_code }}/board/review";
+            })
+          }).catch(function (error) {
+            console.log(error);
+            if (error.response) {
+              alert(error.response.data.msg);
+            }
+          });
+        }
+      });
+    }
+	</script>
+{% endblock %}

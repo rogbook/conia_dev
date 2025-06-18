@@ -1,0 +1,1020 @@
+{% extends 'base.jinja2' %}
+{% block title %}{{ title }}{% endblock %}
+{% if user %}
+	{% block header_user %}{{ user.name }}{% endblock %}
+{% endif %}
+{% block content %}
+	<style>
+      /* 해상도에 따라 KCP 결제창이 header에 가려치는 현상 */
+      .navbar-sticky.navbar-stuck {
+          z-index: 1 !important;
+      }
+
+      .coupons.active {
+          border: 1px solid var(--cz-accent);
+      }
+	</style>
+	<div class="container pb-5 mb-2">
+		<div class="row">
+			<section class="col-12 pt-4">
+				{% if products[0].product.type == "DP" %}
+					<!-- Shipping address-->
+					<h2 class="h5 pt-1 pb-3 mb-3 border-bottom fw-bold">배송지</h2>
+					<div class="row">
+						<div class="col-12">
+							<div class="mb-3">
+								<select class="form-select" id="sel-address" onchange="address_change()">
+									{% if address_default %}
+										<option value="{{ address_default.id }}">기본 배송지 ({{ address_default.title }})</option>
+									{% endif %}
+									<option value="">신규 배송지</option>
+									{% for item in address %}
+										<option value="{{ item.id }}">{{ item.title }}</option>
+									{% endfor %}
+								</select>
+							</div>
+						</div>
+					</div>
+
+					<div class="row p-1 {% if not address_default %}d-none{% endif %}" id="existing_data">
+						<p id="address_1">({{ address_default.title }}) {{ address_default.name }}</p>
+						<p id="address_2">{{ address_default.mobile|phone_format }}</p>
+						<p id="address_3">({{ address_default.zipcode }}) {{ address_default.address }} {{ address_default.address_detail }}</p>
+						<input type="hidden" id="post_code" value="{{ address_default.zipcode }}">
+					</div>
+					<div class="mb-3 {% if address_default %}d-none{% endif %}" id="new_data">
+						<div class="row">
+							<div class="col-sm-6">
+								<div class="mb-3">
+									<label class="form-label" for="checkout-email">수령인</label>
+									<input class="form-control" type="text" id="dUserName">
+								</div>
+							</div>
+							<div class="col-sm-6">
+								<div class="mb-3">
+									<label class="form-label" for="checkout-phone">배송지명</label>
+									<input class="form-control" type="text" id="dName">
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-6">
+								<div class="mb-3">
+									<label class="form-label" for="checkout-email">연락처</label>
+									<input class="form-control" type="text" id="dPhone" onkeypress="inputNumberFormat(this); textLimit(this,15)">
+								</div>
+							</div>
+							<div class="col-sm-6">
+								<div class="mb-3">
+									<label class="form-label" for="checkout-email">우편번호</label>
+									<div class="input-group">
+										<input class="form-control" type="text" id="zipcode" onclick="search_address()" readonly>
+										<button class="btn btn-primary" type="button" onclick="search_address()">우편번호</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row mb-5">
+							<div class="col-sm-6">
+								<div class="mb-3">
+									<label class="form-label" for="checkout-email">주소</label>
+									<input class="form-control" type="text" id="address" onclick="search_address()" readonly>
+								</div>
+							</div>
+							<div class="col-sm-6">
+								<div class="mb-3">
+									<label class="form-label" for="checkout-email">상세 주소</label>
+									<input class="form-control" type="text" id="address_detail">
+								</div>
+							</div>
+							<div class="col-12">
+								<button class="btn btn-primary w-100" onclick="address_add()">신규 배송지 등록</button>
+							</div>
+						</div>
+					</div>
+					<div class="mb-3">
+						<label class="form-label" for="checkout-email">배송메모</label>
+						<select id="checkout-memo" class="form-select" onchange="memo(this)">
+							<option value="" selected>선택안함</option>
+							<option value="문 앞">문 앞</option>
+							<option value="직접 받고 부재시 문 앞">직접 받고 부재시 문 앞</option>
+							<option value="경비실">경비실</option>
+							<option value="택배함">택배함</option>
+							<option value="직접 입력">직접 입력</option>
+						</select>
+						<input type="text" id="checkout-memo-manual" onkeyup="memoManual(this)" class="form-control mt-2" style="display: none;">
+						<!-- <input class="form-control" type="text" id="checkout-memo" onkeyup="memo(this)"> -->
+					</div>
+				{% else %}
+					<h5 class="pt-3 pb-3 mb-3 border-bottom fw-bold">구매자 정보</h5>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="mb-3">
+								<label class="form-label" for="checkout-name">구매자</label>
+								<input class="form-control" type="email" id="checkout-name" onkeyup="changeName(this)" value="{{ member.name }}">
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="mb-3">
+								<label class="form-label" for="checkout-phone">연락처</label>
+								<input class="form-control" type="text" id="checkout-phone" onkeyup="changePhone(this)" value="{{ member.mobile }}">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-6">
+							<div>
+								<label class="form-label" for="checkout-email">이메일</label>
+								<input class="form-control" type="email" id="checkout-email" onkeyup="changeEmail(this)" value="{{ member.email }}">
+							</div>
+						</div>
+					</div>
+				{% endif %}
+
+				<div class="pt-5">
+					<h5 class="fw-bold">주문 목록</h5>
+					{% if products[0].product.type == "DP" %}
+						{% for row in shippings %}
+							<div class="card {% if loop.nextitem %}mb-3{% endif %} border-accent">
+								<div class="card-header d-flex justify-content-between fs-sm">
+									<span><i class="ci-home me-2"></i>{{ row.shipping_title }}</span>
+								</div>
+								<div class="card-body">
+									{% for prd in row.prd_grp %}
+										<div class="prd-frame {% if loop.nextitem %}mb-3 pb-3 border-bottom border-accent{% endif %}">
+											<input type="hidden" name="prd-id" value="{{ prd.product.id }}">
+											<div class="d-flex align-items-center">
+												<a class="d-block flex-shrink-0" href="/{{ request.path_params.store_code }}/product/{{ prd.product.id }}" style="width:86px;">
+													<img class="img-1by1" src="{{ prd.product.photos[0].uri }}" alt="Product">
+												</a>
+												<a href="/{{ request.path_params.store_code }}/product/{{ prd.product.id }}" class="ps-3 text-dark fw-bold fs-sm">{{ prd.product.name }}</a>
+											</div>
+											<table class="w-100 mt-1 fs-sm text-center">
+												<tr class="border-bottom border-2 text-muted">
+													<th class="p-1" style="width:62px;">쿠폰</th>
+													<th class="p-1">옵션</th>
+													<th class="p-1" style="width:50px; min-width:32px;">수량</th>
+													<th class="p-1" style="width:100px; min-width:32px;">가격</th>
+												</tr>
+												{% for opt in prd.options %}
+													<tr class="border-bottom border-1">
+														<td class="py-2">
+															<input type="hidden" name="sp-id" value="{{ opt.sp_id }}">
+															<input type="hidden" name="opt-id" value="{{ opt.option.id }}">
+															<input type="hidden" name="opt-ori-price" value="{{ opt.amount|int }}">
+															<input type="hidden" name="opt-price" value="{{ opt.amount|int }}">
+															<input type="hidden" name="opt-discount" value="0">
+															{% if able_coupon and prd.product.coupon_yn == 'Y' %}
+																<!-- 적용전 -->
+																<button type="button" onclick="modalCoupon('{{ opt.option.id }}', 'opt', '{{ opt.sp_id }}', '{{ prd.product.id }}');" class="btn btn-sm btn-outline-accent coupon-btn px-0" style="width:60px;">쿠폰선택</button>
+																<!-- 적용후 -->
+																<button type="button" onclick="modalCoupon('{{ opt.option.id }}', 'opt', '{{ opt.sp_id }}', '{{ prd.product.id }}');" class="btn btn-sm btn-accent text-center px-2 coupon-active-btn d-none px-0" style="width:60px;"><i class="ci-check-circle me-1"></i><br>쿠폰적용</button>
+															{% endif %}
+														</td>
+														<td class="p-2">
+															<span class="">{% if opt.option.option_title %}{{ opt.option.option_title }}{% else %}{{ prd.product.name }}{% endif %}</span><br>
+															{% if opt.option.option_1 %}{{ opt.option.option_1 }}{% endif %}{% if opt.option.option_2 %}/{{ opt.option.option_2 }}{% endif %}{% if opt.option.option_3 %}/{{ opt.option.option_3 }}{% endif %}{% if opt.option.option_4 %}/{{ opt.option.option_4 }}{% endif %}
+															{% if opt.option.option_5 %}/{{ opt.option.option_5 }}{% endif %}
+														</td>
+														<td class="p-2">{{ "{:,.0f}".format(opt.count) }}</td>
+														<td class="p-2 lineH-12">
+															<div class="opt-ori-price fw-bold text-accent">{{ "{:,.0f}".format(opt.amount) }}원</div>
+															<div class="opt-price"></div>
+														</td>
+													</tr>
+												{% endfor %}
+											</table>
+											<div class="d-flex align-items-center justify-content-end mt-3">
+												<div class="text-end">
+													<div class="d-none mb-2 fs-sm text-muted discount-frame">
+														<div class="discount-name"></div>
+														<div>할인금액 : <span class="discount-price"></span>원</div>
+													</div>
+													<div><span class="text-dark">상품금액 : </span><span class="fw-bold text-accent prd-total-price">{{ "{:,.0f}".format(prd.prd_total_amount) }}</span>원</div>
+													<input type="hidden" name="prd-ori-total-price" value="{{ prd.prd_total_amount|int }}">
+													<input type="hidden" name="prd-total-price" value="{{ prd.prd_total_amount|int }}">
+													<input type="hidden" name="prd-tax" value="{{ prd.product.tax }}">
+												</div>
+											</div>
+										</div>
+									{% endfor %}
+								</div>
+								<div class="card-footer d-flex align-items-center justify-content-end fs-sm">
+									<i class="ci-truck text-success me-1"></i>
+									<span class="me-1">배송비 :</span>
+									<div><span class="text-end fw-bold text-accent ship-price">{{ "{:,.0f}".format(row.cost) }}</span>원</div>
+									<input type="hidden" name="ship-price" value="{{ row.cost|int }}">
+									<input type="hidden" name="ship-add-price" value="{{ row.add_cost|int }}">
+									<input type="hidden" name="ship-total-price" value="{{ row.cost|int }}">
+								</div>
+							</div>
+						{% endfor %}
+					{% else %}
+						<div class="card border-accent border-3">
+							<div class="card-header fs-sm">
+								<span><i class="ci-home me-2"></i>{{ products[0].product.member.company.name }}</span>
+							</div>
+							<div class="card-body">
+								{% for prd in product_grp %}
+									<div class="prd-frame {% if loop.nextitem %}mb-3 pb-3 border-bottom border-accent border-3{% endif %}">
+										<div class="d-flex align-items-center">
+											<a class="d-block flex-shrink-0" href="/{{ request.path_params.store_code }}/product/{{ prd.product.id }}" style="width:86px;">
+												<img class="img-1by1" src="{{ prd.product.photos[0].uri }}" alt="Product">
+											</a>
+											<a href="/{{ request.path_params.store_code }}/product/{{ prd.product.id }}" class="ps-3 text-dark fw-bold fs-sm">{{ prd.product.name }}</a>
+										</div>
+										<table class="w-100 mt-1 fs-sm text-center">
+											<tr class="border-bottom border-2 text-muted">
+												<th class="p-1" style="width:62px;">쿠폰</th>
+												<th class="p-1">옵션</th>
+												<th class="p-1" style="width:40px; min-width:32px;">수량</th>
+												<th class="p-1" style="width:90px; min-width:32px;">가격</th>
+											</tr>
+											{% for opt in prd.options %}
+												<tr class="border-bottom border-1">
+													<td class="py-2">
+														<input type="hidden" name="sp-id" value="{{ opt.sp_id }}">
+														<input type="hidden" name="opt-id" value="{{ opt.option.id }}">
+														<input type="hidden" name="opt-ori-price" value="{{ opt.amount|int }}">
+														<input type="hidden" name="opt-price" value="{{ opt.amount|int }}">
+														<input type="hidden" name="opt-discount" value="0">
+														{% if able_coupon and prd.product.coupon_yn == 'Y' %}
+															<!-- 적용전 -->
+															<button type="button" onclick="modalCoupon('{{ opt.option.id }}', 'opt', '{{ opt.sp_id }}', '{{ prd.product.id }}');" class="btn btn-sm btn-outline-accent coupon-btn px-0" style="width:60px;">쿠폰선택</button>
+															<!-- 적용후 -->
+															<button type="button" onclick="modalCoupon('{{ opt.option.id }}', 'opt', '{{ opt.sp_id }}', '{{ prd.product.id }}');" class="btn btn-sm btn-accent text-center px-2 coupon-active-btn d-none px-0" style="width:60px;"><i class="ci-check-circle me-1"></i><br>쿠폰적용</button>
+														{% endif %}
+													</td>
+													<td class="p-2">
+														<span class="">{% if opt.option.option_title %}{{ opt.option.option_title }}{% else %}{{ prd.product.name }}{% endif %}</span><br>
+														{% if opt.option.option_1 %}{{ opt.option.option_1 }}{% else %}-{% endif %}{% if opt.option.option_2 %}/{{ opt.option.option_2 }}{% endif %}{% if opt.option.option_3 %}/{{ opt.option.option_3 }}{% endif %}{% if opt.option.option_4 %}/{{ opt.option.option_4 }}{% endif %}
+														{% if opt.option.option_5 %}/{{ opt.option.option_5 }}{% endif %}
+													</td>
+													<td class="p-2">{{ "{:,.0f}".format(opt.count) }}</td>
+													<td class="p-2 lineH-12">
+														<div class="opt-ori-price fw-bold text-accent">{{ "{:,.0f}".format(opt.amount) }}원</div>
+														<div class="opt-price"></div>
+													</td>
+												</tr>
+											{% endfor %}
+										</table>
+										<div class="d-flex align-items-center justify-content-end mt-3">
+											<div class="text-end">
+												<!-- 적용후 -->
+												<div class="d-none mb-2 fs-sm text-muted discount-frame">
+													<div class="discount-name"></div>
+													<div>할인금액 : <span class="discount-price"></span>원</div>
+												</div>
+												<div class="text-end"><span class="text-dark">상품금액 : </span><span class="fw-bold text-accent prd-total-price">{{ "{:,.0f}".format(prd.prd_total_amount) }}</span>원</div>
+												<input type="hidden" name="prd-ori-total-price" value="{{ prd.prd_total_amount|int }}">
+												<input type="hidden" name="prd-total-price" value="{{ prd.prd_total_amount|int }}">
+												<input type="hidden" name="prd-tax" value="{{ prd.product.tax }}">
+											</div>
+										</div>
+									</div>
+								{% endfor %}
+							</div>
+						</div>
+					{% endif %}
+					<div class="d-flex justify-content-between mt-3 p-3 fs-lg fw-bold border border-accent bg-faded-accent rounded">
+						<span>합계</span>
+						<div><span class="total-price">{{ "{:,.0f}".format(total_amount) }}</span>원</div>
+					</div>
+				</div>
+				<div id="payment-type-frame">
+					<h5 class="pt-5 pb-3 mb-3 border-bottom fw-bold">결제 방법</h5>
+					<div>
+						{% if 'PAYCO' not in disable_pg_provider_list %}
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" id="ex-radio-7" name="radio_payment" value="payco" checked="">
+								<label class="form-check-label" for="ex-radio-7">페이코</label>
+							</div>
+						{% endif %}
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" id="ex-radio-4" name="radio_payment" value="100000000000" {% if 'PAYCO' in disable_pg_provider_list %}checked=""{% endif %}>
+							<label class="form-check-label" for="ex-radio-4">신용카드</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" id="ex-radio-5" name="radio_payment" value="010000000000">
+							<label class="form-check-label" for="ex-radio-5">실시간 계좌이체</label>
+						</div>
+						{#					<div class="form-check form-check-inline">#}
+						{#						<input class="form-check-input" type="radio" id="ex-radio-6" name="radio_payment" value="001000000000">#}
+						{#						<label class="form-check-label" for="ex-radio-6">가상계좌</label>#}
+						{#					</div>#}
+						{% if 'PAYCO' in disable_pg_provider_list %}
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" id="ex-radio-7" name="radio_payment" value="payco" disabled>
+								<label class="form-check-label" for="ex-radio-7">페이코 (일부 상품이 해당 결제 수단을 지원하지 않습니다.)</label>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+
+
+				<!-- <div class="d-lg-block d-none mt-5 pt-3 border-top">
+					<div class="fs-sm fw-bold mb-2">주문 내용을 확인하였으며, 정보 제공 등에 동의합니다.</div>
+					<form class="needs-validation" method="post" novalidate>
+						<button class="btn btn-primary d-block w-100" type="button" onclick="pay_start()"><i class="ci-card fs-lg me-2"></i>결제하기</button>
+					</form>
+				</div> -->
+
+			</section>
+			<!-- Sidebar-->
+			<div class="pt-5 mt-0">
+				<div class="card border-primary" style="z-index:0;">
+					<div class="card-header fw-bold">결제 상세</div>
+					<div class="card-body px-4">
+						<ul class="list-unstyled mb-0">
+							<li class="d-flex justify-content-between align-items-center">
+								<span class="me-2">총 상품금액 :</span><span class="text-end"><span class="total-prd-price">{{ "{:,.0f}".format(total_prd_price) }}</span>원</span>
+							</li>
+							{% if products[0].product.type == "DP" %}
+								<li class="d-flex justify-content-between align-items-center">
+									<span class="me-2">총 배송비 :</span><span class="text-end total-ship-price">+{{ "{:,.0f}".format(total_shipping) }}원</span></li>
+							{% endif %}
+							<li class="d-flex justify-content-between align-items-center">
+								<span class="me-2">총 할인금액 :</span><span class="text-end total-discount">0원</span>
+							</li>
+						</ul>
+					</div>
+					<div class="card-footer d-flex justify-content-between align-items-center bg-faded-primary">
+						<span class="fs-5 fw-bold">결제금액</span>
+						<div class="fs-3 fw-bold text-primary"><span class="mb-0 total-price">{{ "{:,.0f}".format(total_amount) }}</span>원</div>
+					</div>
+				</div>
+				<div class="mt-5 pt-3 border-top">
+					<div class="fs-sm fw-bold mb-2">주문 내용을 확인하였으며, 정보 제공 등에 동의합니다.</div>
+					<form class="needs-validation" method="post" novalidate>
+						<button class="btn btn-primary d-block w-100" type="button" id="btnOrder" onclick="pay_start()">결제하기</button>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<!-- modal coupon -->
+		<div id="modal_coupon" class="modal fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<div class="modal-title">사용가능 쿠폰</div>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<input type="hidden" name="open_target" value="">
+					<input type="hidden" name="open_target_type" value="">
+					<input type="hidden" name="open_target_sp_id" value="">
+					<input type="hidden" name="open_target_prd_id" value="">
+					<div class="modal-body" id="coupon-modal">
+						{% if able_coupon %}
+							<div class="fs-sm text-muted text-center">적용 가능한 쿠폰은 결제 금액에 따라 변경될 수 있습니다.</div>
+							{% for coupon in able_coupon %}
+								<div class="mt-3">
+									<div class="row mx-0 rounded-3 coupons" onclick="couponActive(this);" style="cursor: pointer;">
+										<input type="hidden" name="target_type" value="">
+										<input type="hidden" name="active_target" value="">
+										<input type="hidden" name="active_target_sp_id" value="">
+										<input type="hidden" name="coupon_id" value="{{ coupon.id }}">
+										<input type="hidden" name="coupon_percent" value="{{ coupon.percent }}">
+										<input type="hidden" name="coupon_amount" value="{{ coupon.amount }}">
+										<input type="hidden" name="coupon_product" value="{% if coupon.able_prd_str %}{{ coupon.able_prd_str }}{% else %}0{% endif %}">
+										<div class="px-3 pt-3 pb-2 rounded-3 border border-end-0 lineH-12" style="width:calc(100% - 70px);">
+											<div class="fs-xs text-muted lineH-18">{{ coupon.description }}</div>
+											<div class="fs-sm fw-bold mb-3 cp-name">{{ coupon.name }}</div>
+											{% if coupon.percent %}
+												<div class="fs-xl fw-bold text-info mb-3">{{ coupon.percent }}%<span class="fs-base"> 할인</span></div>
+											{% else %}
+												<div class="fs-xl fw-bold text-info mb-3">{{ "{:,.0f}".format(coupon.amount) }}원<span class="fs-base"> 할인</span></div>
+											{% endif %}
+											<div class="fs-xs text-muted">{{ (coupon.begin_date|string)[:10] }} ~ {{ (coupon.end_date|string)[:10] }}</div>
+										</div>
+										<div class="p-2 rounded-3 border d-flex justify-content-center align-items-center" style="width:70px; border-left-style: dashed !important;">
+											{% if coupon.coupon_group.image %}
+												<div class="rounded-circle overflow-hidden border" style="width:50px;"><img src="{{ coupon.coupon_group.image }}" class="img-1by1"></div>
+											{% endif %}
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+						{% else %}
+							<div class="text-center">적용가능한 쿠폰이 없습니다.</div>
+						{% endif %}
+					</div>
+					<div class="modal-footer p-1">
+						<button class="btn btn-md btn-accent d-block w-100" data-bs-dismiss="modal" onclick="couponSelect()">선택완료</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<form name="order_info" id="order_info" method="post" action="/{{ request.path_params.store_code }}/order/request">
+		<!-- 주문정보 세팅 -->
+		<input type="hidden" name="ordr_idxx" value="{{ order_num }}" maxlength="40"/>
+		<input type="hidden" name="good_name" value="{% if products|length == 1 %}{{ products[0].product.name }}{% else %}{{ products[0].product.name }} 외 {{ products|length - 1 }}건{% endif %}"/>
+		<input type="hidden" name="good_mny" value="{{ "{:.0f}".format(total_amount) }}" maxlength="9"/>
+		<input type="hidden" name="buyr_name" value="{{ member.name }}"/>
+		<input type="hidden" name="buyr_tel2" value="{{ member.mobile }}"/>
+		<input type="hidden" name="buyr_mail" value="{{ member.email }}"/>
+		<!-- 신용카드 -->
+		<input type="hidden" name="pay_method" id="pay_method" value="100000000000"/>
+		{#		<input type="hidden" name="pay_method" id="pay_method" value="000100000000"/> 포인트 #}
+		{#		<input type="hidden" name="pay_method" id="pay_method" value="000010000000"/> 휴대폰 #}
+		<!-- 가맹점 정보 설정-->
+		<input type="hidden" name="site_cd" value="{{ site_code }}"/>
+		<input type="hidden" name="site_name" value="{{ store.title }}"/>
+		<!-- 인증데이터 처리-->
+		<input type="hidden" name="res_cd" value=""/>
+		<input type="hidden" name="res_msg" value=""/>
+		<input type="hidden" name="enc_info" value=""/>
+		<input type="hidden" name="enc_data" value=""/>
+		<input type="hidden" name="ret_pay_method" value=""/>
+		<input type="hidden" name="tran_cd" value=""/>
+		<input type="hidden" name="use_pay_method" value=""/>
+
+		<input type="hidden" name="sheet_id" value="{{ request.path_params.sheet_id }}"/>
+		<input type="hidden" name="address_id" id="address_id" value="{{ address_default.id }}"/>
+		<input type="hidden" name="memo" id="memo" value=""/>
+		<input type="hidden" name="client_type" id="client_type" value=""/>
+		<input type="hidden" name="total_prd_price" value="{{ "{:.0f}".format(total_prd_price) }}"/>
+		<input type="hidden" name="total_shipping" value="{{ "{:.0f}".format(total_shipping) }}"/>
+		<input type="hidden" name="user_name" id="user_name" value="{{ member.name }}"/>
+		<input type="hidden" name="user_phone" id="user_phone" value="{{ member.mobile }}"/>
+		<input type="hidden" name="user_email" id="user_email" value="{{ member.email }}"/>
+		<input type="hidden" name="active_coupon" id="active_coupon" value=""/>
+		<input type="hidden" name="pay_type" id="pay_type" value=""/>
+		{% if tax_type == 'T' %}
+			<input type="hidden" name="tax_flag" value="TG01"/>
+		{% elif tax_type == 'F' %}
+			<input type="hidden" name="tax_flag" value="TG02"/>
+		{% elif tax_type == 'TF' %}
+			<input type="hidden" name="tax_flag" value="TG03"/>
+		{% endif %}
+		<input type="hidden" name="comm_tax_mny" id="comm_tax_mny" value="0"/>
+		<input type="hidden" name="comm_vat_mny" id="comm_vat_mny" value="0"/>
+		<input type="hidden" name="comm_free_mny" id="comm_free_mny" value="0"/>
+		<input type="hidden" name="prd_type" id="prd_type" value="{{ products[0].product.type }}"/>
+
+		<input type="hidden" name="reserveOrderNo" id="reserveOrderNo" value=""/>
+		<input type="hidden" name="paymentCertifyToken" id="paymentCertifyToken" value=""/>
+		<input type="hidden" name="mainPgCode" id="mainPgCode" value=""/>
+		<input type="hidden" name="payType" id="payType" value=""/>
+	</form>
+	<form action="" name="paycoPayForm" id="paycoPayForm" target="paycoPayForm">
+{% endblock %}
+{% block script %}{{ super() }}
+	<script type="text/javascript" src="{{ kcp_host }}"></script>
+	<script type="text/javascript">
+    /* 인증완료시 재귀 함수  */
+    function m_Completepayment(FormOrJson, closeEvent) {
+      var frm = document.order_info;
+      GetField(frm, FormOrJson);
+
+      if (frm.res_cd.value == "0000") {
+        frm.submit();
+      } else {
+        if (frm.res_cd.value === '3001') {
+          alert('결제를 취소하였습니다.');
+        } else {
+          alert("[" + frm.res_cd.value + "] " + frm.res_msg.value);
+        }
+        closeEvent();
+      }
+    }
+
+    /* 결제창 실행 함수 */
+    function jsf__pay(form) {
+      try {
+        KCP_Pay_Execute(form);
+      } catch (e) {
+        /* IE 에서 결제 정상종료시 throw로 스크립트 종료 */
+      }
+    }
+	</script>
+	<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+	<script type="text/javascript">
+    let selected_coupon = {};
+    document.getElementById("client_type").value = getPlatformType();
+    window.onpageshow = function (event) {
+      axios.get("/api/order/sheet/{{ request.path_params.sheet_id }}", {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }).then(function (response) {
+        let res = response.data;
+        if (!res.exist) {
+          swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: '만료된 주문입니다.',
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            window.location.replace("/{{ request.path_params.store_code }}");
+          })
+        }
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+          switch (error.response.data.code) {
+            case "AUTH0004":
+            case "AUTH0005":
+              window.location.href = '/{{ request.path_params.store_code }}';
+              break
+          }
+        }
+      });
+
+      let postCode = document.getElementById('post_code');
+      if (postCode && postCode.value) {
+        rural_check(postCode.value);
+      }
+    };
+
+    const radioGroup = document.getElementsByName('radio_payment');
+    radioGroup.forEach(radio => {
+      radio.addEventListener('change', function () {
+        if (this.checked) {
+          document.getElementById("pay_method").value = this.value;
+        }
+      });
+    });
+
+    function search_address() {
+      new daum.Postcode({
+        oncomplete: function (data) {
+          document.getElementById("zipcode").value = data.zonecode;
+          document.getElementById("address").value = data.address;
+        }
+      }).open();
+    }
+
+    function address_add() {
+      const title = document.getElementById("dName").value;
+      const name = document.getElementById("dUserName").value;
+      const address = document.getElementById("address").value;
+      const address_detail = document.getElementById("address_detail").value;
+      const zipcode = document.getElementById("zipcode").value;
+      const mobile = document.getElementById("dPhone").value;
+
+      if (!(title && name && address && address_detail && zipcode && mobile)) {
+        swal.fire({
+          position: 'center',
+          icon: 'warning',
+          title: '배송지 내용을 입력해주세요.',
+        })
+        return
+      }
+
+      const data = {
+        title: title,
+        name: name,
+        address: address,
+        address_detail: address_detail,
+        zipcode: zipcode,
+        mobile: mobile,
+        default_yn: 'N'
+      }
+
+      swal.fire({
+        position: 'center',
+        icon: 'info',
+        title: '기본 배송지로 등록하시겠습니까?',
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonText: '예',
+        cancelButtonText: '아니오',
+      }).then((result) => {
+        if (result) {
+          data.default_yn = 'Y';
+        }
+        address_post(data);
+      })
+    }
+
+    function address_post(data) {
+      axios.post("/api/customer/delivery-address", data, {
+        headers: {'Content-Type': 'application/json'}
+      }).then(function (response) {
+        swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '신규 배송지가 등록 되었습니다.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          const sel = document.getElementById("sel-address");
+          let new_opt = document.createElement('option');
+          new_opt.value = response.data.id;
+          new_opt.text = data.title;
+          sel.add(new_opt)
+          sel.value = response.data.id;
+
+          address_change()
+        })
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function address_change() {
+      const sel = document.getElementById("sel-address");
+      let sel_val = sel.options[sel.selectedIndex].value;
+
+      if (sel_val) {
+        axios.get("/api/customer/delivery-address/" + sel_val).then(function (response) {
+          let res = response.data;
+          document.getElementById("address_1").innerText = "(" + res.title + ") " + res.name;
+          document.getElementById("address_2").innerText = res.mobile.replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
+          document.getElementById("address_3").innerText = "(" + res.zipcode + ") " + res.address + " " + res.address_detail;
+          document.getElementById("address_id").value = sel_val;
+          document.getElementById("post_code").value = res.zipcode;
+          rural_check(res.zipcode);
+        }).catch(function (error) {
+          console.log(error);
+          if (error.response) {
+            alert(error.response.data.msg);
+          }
+        });
+        document.getElementById("new_data").classList.add("d-none");
+        document.getElementById("existing_data").classList.remove("d-none");
+      } else {
+        document.getElementById("address_id").value = '';
+        document.getElementById("new_data").classList.remove("d-none");
+        document.getElementById("existing_data").classList.add("d-none");
+      }
+    }
+
+    function rural_check(zipcode) {
+      axios.get("/api/order/rural/" + zipcode).then(function (response) {
+        let res = response.data;
+        if (res.exist) {
+          swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: '선택된 배송지는 도서산간 지역입니다.\n배송 추가요금이 적용될 수 있습니다.',
+            confirmButtonText: "확인",
+          })
+          change_post_cost(true)
+        } else {
+          change_post_cost(false)
+        }
+      }).catch(function (error) {
+        console.log(error);
+        if (error.response) {
+          alert(error.response.data.msg);
+        }
+      });
+    }
+
+    function memo(obj) {
+      if (obj.value == "직접 입력") {
+        document.getElementById("checkout-memo-manual").style.display = "block";
+        document.getElementById("memo").value = "";
+      } else {
+        document.getElementById("checkout-memo-manual").style.display = "none";
+        document.getElementById("memo").value = obj.value;
+      }
+    }
+
+    function memoManual(obj) {
+      document.getElementById("memo").value = obj.value;
+    }
+
+    function changeName(obj) {
+      document.getElementById("user_name").value = obj.value;
+    }
+
+    function changePhone(obj) {
+      document.getElementById("user_phone").value = obj.value;
+    }
+
+    function changeEmail(obj) {
+      document.getElementById("user_email").value = obj.value;
+    }
+
+    function change_post_cost(isAdd) {
+      let shipPriceEl = document.querySelectorAll("input[name='ship-price']");
+      if (isAdd) {
+        shipPriceEl.forEach(function (element) {
+          let parent = element.parentNode;
+          let price = Number(element.value);
+          let addPrice = Number(parent.querySelector("input[name='ship-add-price']").value);
+          parent.querySelector("input[name='ship-total-price']").value = (price + addPrice);
+          parent.querySelector(".ship-price").innerHTML = (price + addPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        });
+      } else {
+        shipPriceEl.forEach(function (element) {
+          let parent = element.parentNode;
+          let price = Number(element.value);
+          parent.querySelector("input[name='ship-total-price']").value = price;
+          parent.querySelector(".ship-price").innerHTML = (price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        });
+      }
+      couponSelect();
+    }
+
+    function couponActive(obj) {
+      let couponOpenTarget = document.querySelector("input[name='open_target']").value;
+      let couponOpenTargetType = document.querySelector("input[name='open_target_type']").value;
+      let couponOpenTargetSpIdType = document.querySelector("input[name='open_target_sp_id']").value;
+      let couponOpenTargetPrdId = document.querySelector("input[name='open_target_prd_id']").value;
+      let active_targetEl = obj.querySelector('input[name="active_target"]');
+      let active_targetSpIdEl = obj.querySelector('input[name="active_target_sp_id"]');
+      let target_typeEl = obj.querySelector('input[name="target_type"]');
+      let coupon_product = obj.querySelector('input[name="coupon_product"]').value;
+      let active_target = active_targetEl.value;
+
+      if (coupon_product !== "0") {
+        let targetPrdIds = coupon_product.split(",");
+        if (!targetPrdIds.includes(couponOpenTargetPrdId)) {
+          swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: '해당 상품에 사용할 수 없는 쿠폰입니다.',
+            showConfirmButton: true,
+          });
+					return;
+        }
+
+      }
+
+      if (active_target === '') {
+        let alreadyActiveTargetEl = document.querySelectorAll(`input[name="active_target"][value="${couponOpenTarget}"]`);
+        if (alreadyActiveTargetEl.length > 0) {
+          alreadyActiveTargetEl.forEach(function (element) {
+            element.parentNode.classList.remove("active");
+            element.value = '';
+          });
+        }
+
+        active_targetEl.value = couponOpenTarget;
+        active_targetSpIdEl.value = couponOpenTargetSpIdType;
+        target_typeEl.value = couponOpenTargetType;
+        //alert("쿠폰 선택됨");
+      } else {
+        if (couponOpenTarget === active_target) {
+          active_targetEl.value = '';
+          target_typeEl.value = '';
+          //alert("쿠폰 해제됨");
+        } else {
+          swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: '이미 사용 선택된 쿠폰입니다.',
+            showConfirmButton: false,
+            timer: 1500,
+          })
+          return;
+        }
+      }
+
+      $(obj).toggleClass("active");
+    }
+
+    function couponSelect() {
+      let couponModal = document.getElementById("coupon-modal");
+      let selectedCouponEl = couponModal.getElementsByClassName("active");
+      let selectedCoupon = []
+      selected_coupon = {};
+      for (let i = 0; i < selectedCouponEl.length; i++) {
+        let coupon_id = selectedCouponEl[i].querySelector('input[name="coupon_id"]').value;
+        let coupon_percent = selectedCouponEl[i].querySelector('input[name="coupon_percent"]').value;
+        let coupon_amount = selectedCouponEl[i].querySelector('input[name="coupon_amount"]').value;
+        let coupon_name = selectedCouponEl[i].querySelector('.cp-name').innerHTML;
+        let coupon_active_target = selectedCouponEl[i].querySelector('input[name="active_target"]').value;
+        let coupon_active_target_sp_id = selectedCouponEl[i].querySelector('input[name="active_target_sp_id"]').value;
+        let coupon_target_type = selectedCouponEl[i].querySelector('input[name="target_type"]').value;
+        selected_coupon[coupon_id] = coupon_active_target;
+
+        let couponData = {
+          "id": coupon_id,
+          "name": coupon_name,
+          "percent": coupon_percent,
+          "amount": coupon_amount,
+          "active_target": coupon_active_target,
+          "target_type": coupon_target_type,
+          "sp_id": coupon_active_target_sp_id,
+        }
+        selectedCoupon.push(couponData);
+      }
+
+      // 쿠폰 적용 전 초기화
+      let couponInitTargetOptEl = document.querySelectorAll('input[name="opt-id"]');
+      couponInitTargetOptEl.forEach(function (element) {
+        let initTargetPEl = element.parentNode;
+        let oriPrice = initTargetPEl.querySelector("input[name='opt-ori-price']").value;
+        if (initTargetPEl.querySelector(".coupon-btn")) {
+          initTargetPEl.querySelector(".coupon-btn").classList.remove("d-none")
+        }
+        if (initTargetPEl.querySelector(".coupon-active-btn")) {
+          initTargetPEl.querySelector(".coupon-active-btn").classList.add("d-none")
+        }
+        initTargetPEl.querySelector("input[name='opt-price']").value = oriPrice;
+        initTargetPEl.parentNode.querySelector(".opt-price").innerHTML = "";
+        initTargetPEl.parentNode.querySelector(".opt-price").classList.remove("fw-bold", "text-accent");
+        initTargetPEl.parentNode.querySelector(".opt-ori-price").innerHTML = (oriPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";
+        initTargetPEl.parentNode.querySelector(".opt-ori-price").classList.remove("fs-xs", "text-muted");
+        initTargetPEl.parentNode.querySelector(".opt-ori-price").classList.add("fw-bold", "text-accent");
+        let prdFrameEl = element.closest(".prd-frame");
+        let oriTotalPrice = prdFrameEl.querySelector("input[name='prd-ori-total-price']").value;
+        prdFrameEl.querySelector("input[name='prd-total-price']").value = oriTotalPrice;
+        prdFrameEl.querySelector(".prd-total-price").innerHTML = (oriTotalPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        prdFrameEl.querySelector(".discount-frame").classList.remove("d-flex");
+        prdFrameEl.querySelector(".discount-frame").classList.add("d-none");
+        prdFrameEl.querySelector(".discount-price").innerHTML = "0";
+      });
+
+      // 쿠폰 적용
+      let totalDiscount = 0;
+      if (selectedCoupon.length > 0) {
+        for (let i = 0; i < selectedCoupon.length; i++) {
+          let active_target = selectedCoupon[i].active_target;
+          let couponTargetOptEl = document.querySelector(`input[name="opt-id"][value="${active_target}"]`);
+          let couponTargetOptPEl = couponTargetOptEl.parentNode;
+          couponTargetOptPEl.querySelector(".coupon-btn").classList.add("d-none");
+          couponTargetOptPEl.querySelector(".coupon-active-btn").classList.remove("d-none");
+          let oriPrice = couponTargetOptPEl.querySelector("input[name='opt-ori-price']").value;
+          let discount = 0;
+          if (selectedCoupon[i].percent !== 'None') {
+            discount = Math.floor((oriPrice * (selectedCoupon[i].percent / 100)));
+          } else {
+            discount = Number(selectedCoupon[i].amount);
+          }
+          let price = oriPrice - discount;
+          if (price < 0) {
+            discount = discount + price;
+            selectedCoupon[i].amount = discount;
+            price = 0;
+          }
+          couponTargetOptPEl.querySelector("input[name='opt-discount']").value = discount
+          couponTargetOptPEl.querySelector("input[name='opt-price']").value = price
+          let optPriceText = couponTargetOptPEl.parentNode.querySelector(".opt-price");
+          let optOriPriceText = couponTargetOptPEl.parentNode.querySelector(".opt-ori-price");
+          optPriceText.innerHTML = (price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";
+          optPriceText.classList.add("fw-bold", "text-accent");
+          optOriPriceText.innerHTML = "<del>" + (oriPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원" + "</del>";
+          optOriPriceText.classList.remove("fw-bold", "text-accent");
+          optOriPriceText.classList.add("fs-xs", "text-muted");
+          totalDiscount += discount;
+        }
+      }
+
+      document.getElementById("active_coupon").value = JSON.stringify(selectedCoupon);
+      document.querySelector(".total-discount").innerHTML = "-" + (totalDiscount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";
+
+      // 상품 금액 적용
+      let prdFrameEl = document.querySelectorAll(".prd-frame");
+      prdFrameEl.forEach(function (element) {
+        let priceEls = element.querySelectorAll("input[name='opt-price']");
+        let prdPrice = 0;
+        priceEls.forEach(function (priceEl) {
+          prdPrice += Number(priceEl.value);
+        });
+        element.querySelector(".prd-total-price").innerHTML = (prdPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        element.querySelector("input[name='prd-total-price']").value = prdPrice;
+      });
+
+      // 쿠폰 적용 가격 합산
+      let prdTotalPriceEl = document.querySelectorAll("input[name='prd-total-price']");
+      let totalPrice = 0;
+      let totalTaxPrice = 0;
+      let totalTaxFreePrice = 0;
+
+      prdTotalPriceEl.forEach(function (element) {
+        let price = Number(element.value);
+        totalPrice += price;
+        if (element.parentNode.querySelector('input[name="prd-tax"]').value === 'Y') {
+          totalTaxPrice += price;
+        } else {
+          totalTaxFreePrice += price;
+        }
+      });
+      let shipTotalPriceEl = document.querySelectorAll("input[name='ship-total-price']");
+      let totalShipPrice = 0;
+      shipTotalPriceEl.forEach(function (element) {
+        let price = Number(element.value);
+        totalShipPrice += price;
+        totalTaxPrice += price;
+      });
+      let totalPriceEl = document.querySelectorAll(".total-price");
+      totalPriceEl.forEach(function (element) {
+        element.innerText = (totalPrice + totalShipPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      });
+      document.querySelector("input[name='good_mny']").value = totalPrice + totalShipPrice;
+      document.querySelector("input[name='comm_tax_mny']").value = Math.round(totalTaxPrice / 1.1);
+      document.querySelector("input[name='comm_vat_mny']").value = Math.round(totalTaxPrice - (totalTaxPrice / 1.1));
+      document.querySelector("input[name='comm_free_mny']").value = totalTaxFreePrice;
+      // document.querySelector(".total-prd-price").innerHTML = (totalPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      if (document.querySelector(".total-ship-price")) {
+        document.querySelector(".total-ship-price").innerHTML = "+" + (totalShipPrice).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";
+      }
+      let finalPrice = totalPrice + totalShipPrice;
+      if (finalPrice === 0) {
+        document.getElementById("payment-type-frame").classList.add('d-none');
+        document.getElementById("btnOrder").textContent = "주문하기";
+      } else {
+        document.getElementById("payment-type-frame").classList.remove('d-none');
+        document.getElementById("btnOrder").textContent = "결제하기";
+      }
+    }
+
+    function pay_start() {
+      couponSelect();
+      if (document.getElementById('prd_type').value === "DP" && !document.getElementById('address_id').value) {
+        swal.fire("배송지가 선택되지 않았습니다.");
+        return;
+      }
+      if (document.getElementById('prd_type').value !== "DP") {
+        if (!document.getElementById("user_name").value || !document.getElementById("user_phone").value || !document.getElementById("user_email").value) {
+          swal.fire("구매자 정보를 입력해주세요.");
+          return;
+        }
+      }
+      let amount = Number(document.querySelector("input[name='good_mny']").value);
+      if (amount === 0) {
+        let frm = document.order_info;
+        frm.submit();
+        return;
+      } else if (amount < 100) {
+        swal.fire("100원 미만은 결제 할 수 없습니다.");
+        return;
+      }
+      const pay_type = document.querySelector("input[name='radio_payment']:checked").value;
+
+      if (pay_type === 'payco') {
+        document.getElementById("pay_type").value = "payco";
+        {#let frm = document.order_info;#}
+        let frm = document.getElementById('order_info');
+        {#frm.action = "/{{ request.path_params.store_code }}/order/trade_reg"#}
+        {#frm.submit();#}
+        let data = new FormData(frm);
+        payco_reserve(data);
+      } else {
+        if (getPlatformType() === 'PC') {
+          jsf__pay(document.order_info);
+        } else {
+          document.getElementById("pay_type").value = "kcp";
+          let frm = document.order_info;
+          frm.action = "/{{ request.path_params.store_code }}/order/trade_reg"
+          frm.submit();
+        }
+      }
+    }
+
+    // modal_coupon
+    function modalCoupon(targetId, targetType, spId, productId) {
+      document.querySelector("input[name='open_target']").value = targetId;
+      document.querySelector("input[name='open_target_type']").value = targetType;
+      document.querySelector("input[name='open_target_sp_id']").value = spId;
+      document.querySelector("input[name='open_target_prd_id']").value = productId;
+
+      let couponsEl = document.getElementsByClassName("coupons");
+      for (let i = 0; i < couponsEl.length; i++) {
+        let coupon_id = couponsEl[i].querySelector('input[name="coupon_id"]').value;
+        if (coupon_id in selected_coupon) {
+          couponsEl[i].classList.add('active');
+          couponsEl[i].querySelector("input[name='active_target']").value = selected_coupon[coupon_id];
+        } else {
+          couponsEl[i].classList.remove('active');
+          couponsEl[i].querySelector("input[name='active_target']").value = '';
+        }
+      }
+
+      $("#modal_coupon").modal("show");
+    }
+
+    function payco_receive(e) {
+      if (e.data.code === "0") {
+        document.getElementById("reserveOrderNo").value = e.data.reserveOrderNo;
+        document.getElementById("paymentCertifyToken").value = e.data.paymentCertifyToken;
+        document.getElementById("mainPgCode").value = e.data.mainPgCode;
+        document.getElementById("payType").value = 'payco';
+        document.order_info.submit();
+      } else {
+        alert("Payco Error Code : " + e.data.code);
+      }
+    }
+
+    function payco_reserve(data) {
+      let popup = window.open(undefined, 'paycoPayment');
+      window.addEventListener("message", payco_receive, false);
+      axios.post("/{{ request.path_params.store_code }}/order/trade_reg", data)
+          .then(function (response) {
+            popup.location.href = response.data.result.orderSheetUrl;
+          })
+          .catch(function (error) {
+            console.log(error);
+            if (error.response) {
+              alert(error.response.data.msg);
+            }
+          });
+    }
+
+	</script>
+{% endblock %}

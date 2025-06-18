@@ -1,0 +1,21 @@
+<html lang="en">
+<head><title>본인인증</title></head>
+<body></body>
+<script>
+		const token_version_id = "{{ token_version_id }}";
+    const enc_data = "{{ enc_data }}";
+    const integrity_value = "{{ integrity_value }}";
+    const closePopup = () => {
+        window.opener.postMessage({
+            token_version_id: token_version_id,
+            enc_data: enc_data,
+            integrity_value: integrity_value,
+        });
+        window.close();
+    };
+
+		window.onload = function () {
+				closePopup();
+    }
+</script>
+</html>
